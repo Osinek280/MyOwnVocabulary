@@ -1,0 +1,274 @@
+package com.example.myownvocabulary.ui.screens
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.material3.Text
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.items
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import com.example.myownvocabulary.ui.components.ChevronRight
+import com.example.myownvocabulary.ui.components.PlusIcon
+import com.example.myownvocabulary.ui.components.SearchIcon
+import com.example.myownvocabulary.ui.components.badgeLabel
+import com.example.myownvocabulary.ui.components.posColor
+import com.example.myownvocabulary.ui.theme.Card
+import com.example.myownvocabulary.ui.theme.Gray400
+import com.example.myownvocabulary.ui.theme.Gray700
+import com.example.myownvocabulary.ui.theme.Gray900
+import com.example.myownvocabulary.ui.theme.Primary
+
+enum class PartOfSpeech {
+    Noun,
+    Verb,
+    Adjective,
+    Adverb,
+    Other,
+}
+
+data class Word(
+    val id: String,
+    val en: String,
+    val pl: String,
+    val partOfSpeech: PartOfSpeech,
+//    val contexts: List<ContextSentence> = emptyList(),
+//    val verbForms: VerbForms? = null,
+)
+
+val InitialWords: List<Word> = listOf(
+    Word(
+        id = "1",
+        en = "citizen",
+        pl = "obywatel / obywatelka",
+        partOfSpeech = PartOfSpeech.Noun,
+//        contexts = listOf(
+//            ContextSentence("c1", "Every citizen has the right to vote.", 1),
+//        ),
+    ),
+    Word(id = "2", en = "address", pl = "adres", partOfSpeech = PartOfSpeech.Noun),
+    Word(
+        id = "3",
+        en = "travel",
+        pl = "podróżować",
+        partOfSpeech = PartOfSpeech.Verb,
+//        contexts = listOf(
+//            ContextSentence("c2", "She travels to Paris every year.", 1),
+//        ),
+//        verbForms = VerbForms(
+//            infinitive = "travel",
+//            presentI = "travel",
+//            presentYou = "travel",
+//            presentHe = "travels",
+//            presentWe = "travel",
+//            presentThey = "travel",
+//            pastSimple = "travelled",
+//            pastParticiple = "travelled",
+//            gerund = "travelling",
+//        ),
+    ),
+    Word(id = "4", en = "passport", pl = "paszport", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "5", en = "identity", pl = "tożsamość", partOfSpeech = PartOfSpeech.Noun),
+    Word(
+        id = "6",
+        en = "speak",
+        pl = "mówić",
+        partOfSpeech = PartOfSpeech.Verb,
+//        contexts = listOf(
+//            ContextSentence("c3", "She spoke fluent French at the meeting.", 1),
+//        ),
+//        verbForms = VerbForms(
+//            infinitive = "speak",
+//            presentI = "speak",
+//            presentYou = "speak",
+//            presentHe = "speaks",
+//            presentWe = "speak",
+//            presentThey = "speak",
+//            pastSimple = "spoke",
+//            pastParticiple = "spoken",
+//            gerund = "speaking",
+//        ),
+    ),
+    Word(id = "7", en = "freedom", pl = "wolność", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "8", en = "law", pl = "prawo", partOfSpeech = PartOfSpeech.Noun),
+    Word(
+        id = "9",
+        en = "choose",
+        pl = "wybierać",
+        partOfSpeech = PartOfSpeech.Verb,
+//        verbForms = VerbForms(
+//            infinitive = "choose",
+//            presentI = "choose",
+//            presentYou = "choose",
+//            presentHe = "chooses",
+//            presentWe = "choose",
+//            presentThey = "choose",
+//            pastSimple = "chose",
+//            pastParticiple = "chosen",
+//            gerund = "choosing",
+//        ),
+    ),
+    Word(id = "10", en = "democracy", pl = "demokracja", partOfSpeech = PartOfSpeech.Noun),
+)
+
+@Composable
+fun HomeScreen(
+    words: List<Word> = InitialWords,
+    onAddClick: () -> Unit = {},
+) {
+    var search by remember { mutableStateOf("") }
+    val filtered = words.filter {
+        it.en.contains(search, ignoreCase = true) || it.pl.contains(search, ignoreCase = true)
+    }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.White)
+            .statusBarsPadding(),
+    ) {
+        Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 16.dp)) {
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(bottom = 16.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically,
+            ) {
+                Text("MyOwnVocabulary", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Gray900)
+                Box(
+                    modifier = Modifier
+                        .size(36.dp)
+                        .clip(CircleShape)
+                        .background(Primary)
+                        .clickable(onClick = onAddClick),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    PlusIcon()
+                }
+            }
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(Card)
+                    .padding(horizontal = 14.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+            ) {
+                SearchIcon()
+                val searchStyle = TextStyle(
+                    fontSize = 14.sp,
+                    lineHeight = 20.sp,
+                    color = Gray700,
+                )
+                BasicTextField(
+                    value = search,
+                    onValueChange = { search = it },
+                    singleLine = true,
+                    textStyle = searchStyle,
+                    cursorBrush = SolidColor(Primary),
+                    modifier = Modifier.weight(1f),
+                    decorationBox = { inner ->
+                        Box(
+                            modifier = Modifier.fillMaxWidth(),
+                            contentAlignment = Alignment.CenterStart,
+                        ) {
+                            if (search.isEmpty()) {
+                                Text(
+                                    text = "Szukaj słówka...",
+                                    style = searchStyle.copy(color = Gray400),
+                                    maxLines = 1,
+                                )
+                            }
+                            inner()
+                        }
+                    },
+                )
+            }
+        }
+
+        LazyColumn(
+            modifier = Modifier
+                .weight(1f)
+                .padding(horizontal = 20.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            item {
+                Text(
+                    "${filtered.size} słówek",
+                    fontSize = 12.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = Gray400,
+                    modifier = Modifier.padding(bottom = 4.dp),
+                )
+            }
+            items(filtered, key = { it.id }) { word ->
+                WordRow(word)
+            }
+        }
+    }
+}
+
+@Composable
+private fun WordRow(word: Word) {
+    val color = posColor(word.partOfSpeech)
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(Card)
+            .padding(horizontal = 16.dp, vertical = 16.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(word.en, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray900)
+            Text(
+                word.partOfSpeech.badgeLabel(),
+                fontSize = 10.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = color,
+                modifier = Modifier
+                    .clip(RoundedCornerShape(99.dp))
+                    .background(color.copy(alpha = 0.09f))
+                    .padding(horizontal = 6.dp, vertical = 2.dp),
+            )
+        }
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Text(word.pl, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Gray400)
+            ChevronRight()
+        }
+    }
+}
