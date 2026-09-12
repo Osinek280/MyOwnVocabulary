@@ -19,6 +19,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -27,7 +28,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -36,11 +36,6 @@ import com.example.myownvocabulary.ui.components.PlusIcon
 import com.example.myownvocabulary.ui.components.SearchIcon
 import com.example.myownvocabulary.ui.components.badgeLabel
 import com.example.myownvocabulary.ui.components.posColor
-import com.example.myownvocabulary.ui.theme.Card
-import com.example.myownvocabulary.ui.theme.Gray400
-import com.example.myownvocabulary.ui.theme.Gray700
-import com.example.myownvocabulary.ui.theme.Gray900
-import com.example.myownvocabulary.ui.theme.Primary
 
 enum class PartOfSpeech {
     Noun,
@@ -139,6 +134,7 @@ fun HomeScreen(
     words: List<Word> = InitialWords,
     onAddClick: () -> Unit = {},
 ) {
+    val colors = MaterialTheme.colorScheme
     var search by remember { mutableStateOf("") }
     val filtered = words.filter {
         it.en.contains(search, ignoreCase = true) || it.pl.contains(search, ignoreCase = true)
@@ -147,7 +143,7 @@ fun HomeScreen(
     Column(
         modifier = Modifier
             .fillMaxSize()
-            .background(Color.White)
+            .background(colors.background)
     ) {
         Column(modifier = Modifier.padding(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 16.dp)) {
             Row(
@@ -157,12 +153,17 @@ fun HomeScreen(
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                Text("MyOwnVocabulary", fontSize = 20.sp, fontWeight = FontWeight.Bold, color = Gray900)
+                Text(
+                    "MyOwnVocabulary",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = colors.onBackground,
+                )
                 Box(
                     modifier = Modifier
                         .size(36.dp)
                         .clip(CircleShape)
-                        .background(Primary)
+                        .background(colors.primary)
                         .clickable(onClick = onAddClick),
                     contentAlignment = Alignment.Center,
                 ) {
@@ -174,7 +175,7 @@ fun HomeScreen(
                     .fillMaxWidth()
                     .height(48.dp)
                     .clip(RoundedCornerShape(16.dp))
-                    .background(Card)
+                    .background(colors.surfaceVariant)
                     .padding(horizontal = 14.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -183,14 +184,14 @@ fun HomeScreen(
                 val searchStyle = TextStyle(
                     fontSize = 14.sp,
                     lineHeight = 20.sp,
-                    color = Gray700,
+                    color = colors.onSurface,
                 )
                 BasicTextField(
                     value = search,
                     onValueChange = { search = it },
                     singleLine = true,
                     textStyle = searchStyle,
-                    cursorBrush = SolidColor(Primary),
+                    cursorBrush = SolidColor(colors.primary),
                     modifier = Modifier.weight(1f),
                     decorationBox = { inner ->
                         Box(
@@ -200,7 +201,7 @@ fun HomeScreen(
                             if (search.isEmpty()) {
                                 Text(
                                     text = "Szukaj słówka...",
-                                    style = searchStyle.copy(color = Gray400),
+                                    style = searchStyle.copy(color = colors.outline),
                                     maxLines = 1,
                                 )
                             }
@@ -222,7 +223,7 @@ fun HomeScreen(
                     "${filtered.size} słówek",
                     fontSize = 12.sp,
                     fontWeight = FontWeight.Medium,
-                    color = Gray400,
+                    color = colors.outline,
                     modifier = Modifier.padding(bottom = 4.dp),
                 )
             }
@@ -235,12 +236,13 @@ fun HomeScreen(
 
 @Composable
 private fun WordRow(word: Word) {
-    val color = posColor(word.partOfSpeech)
+    val colors = MaterialTheme.colorScheme
+    val badgeColor = posColor(word.partOfSpeech)
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
-            .background(Card)
+            .background(colors.surfaceVariant)
             .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
@@ -249,15 +251,15 @@ private fun WordRow(word: Word) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(word.en, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = Gray900)
+            Text(word.en, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = colors.onSurface)
             Text(
                 word.partOfSpeech.badgeLabel(),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = color,
+                color = badgeColor,
                 modifier = Modifier
                     .clip(RoundedCornerShape(99.dp))
-                    .background(color.copy(alpha = 0.09f))
+                    .background(badgeColor.copy(alpha = 0.09f))
                     .padding(horizontal = 6.dp, vertical = 2.dp),
             )
         }
@@ -265,7 +267,7 @@ private fun WordRow(word: Word) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(word.pl, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = Gray400)
+            Text(word.pl, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = colors.outline)
             ChevronRight()
         }
     }

@@ -1,6 +1,7 @@
 package com.example.myownvocabulary.ui.navigation
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,7 +23,10 @@ fun VocabularyNavHost() {
     }
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val colors = MaterialTheme.colorScheme
     Scaffold(
+        containerColor = colors.background,
+        contentColor = colors.onBackground,
         bottomBar = {
             if (currentRoute in Routes.Tabs) {
                 BottomNav(

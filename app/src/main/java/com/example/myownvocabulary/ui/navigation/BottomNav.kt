@@ -9,8 +9,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -23,17 +23,15 @@ import androidx.compose.ui.unit.sp
 import com.example.myownvocabulary.ui.components.LearnIcon
 import com.example.myownvocabulary.ui.components.ListIcon
 import com.example.myownvocabulary.ui.components.SettingsIcon
-import com.example.myownvocabulary.ui.theme.Gray100
-import com.example.myownvocabulary.ui.theme.Gray400
-import com.example.myownvocabulary.ui.theme.Primary
 
 @Composable
 fun BottomNav(currentRoute: String,  onNavigate: (String) -> Unit,) {
+    val colors = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .background(Color.White)
-            .border(width = 1.dp, brush = SolidColor(Gray100), shape = RoundedCornerShape(0.dp))
+            .background(colors.surface)
+            .border(width = 1.dp, brush = SolidColor(colors.outlineVariant), shape = RoundedCornerShape(0.dp))
     ) {
         NavItem(
             label = "Lista",
@@ -60,7 +58,8 @@ private fun RowScope.NavItem(
     onClick: () -> Unit,
     icon: @Composable (Color) -> Unit,
 ) {
-    val color = if (selected) Primary else Gray400
+    val colors = MaterialTheme.colorScheme
+    val color = if (selected) colors.primary else colors.outline
     Column(
         modifier = Modifier
             .weight(1f)
