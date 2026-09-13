@@ -45,13 +45,31 @@ enum class PartOfSpeech {
     Other,
 }
 
+data class ContextSentence(
+    val id: String,
+    val sentence: String,
+    val highlightIndex: Int? = null,
+)
+
+data class VerbForms(
+    val infinitive: String,
+    val presentI: String,
+    val presentYou: String,
+    val presentHe: String,
+    val presentWe: String,
+    val presentThey: String,
+    val pastSimple: String,
+    val pastParticiple: String,
+    val gerund: String,
+)
+
 data class Word(
     val id: String,
     val en: String,
     val pl: String,
     val partOfSpeech: PartOfSpeech,
-//    val contexts: List<ContextSentence> = emptyList(),
-//    val verbForms: VerbForms? = null,
+    val contexts: List<ContextSentence> = emptyList(),
+    val verbForms: VerbForms? = null,
 )
 
 val InitialWords: List<Word> = listOf(
@@ -60,9 +78,9 @@ val InitialWords: List<Word> = listOf(
         en = "citizen",
         pl = "obywatel / obywatelka",
         partOfSpeech = PartOfSpeech.Noun,
-//        contexts = listOf(
-//            ContextSentence("c1", "Every citizen has the right to vote.", 1),
-//        ),
+        contexts = listOf(
+            ContextSentence("c1", "Every citizen has the right to vote.", 1),
+        ),
     ),
     Word(id = "2", en = "address", pl = "adres", partOfSpeech = PartOfSpeech.Noun),
     Word(
@@ -70,20 +88,20 @@ val InitialWords: List<Word> = listOf(
         en = "travel",
         pl = "podróżować",
         partOfSpeech = PartOfSpeech.Verb,
-//        contexts = listOf(
-//            ContextSentence("c2", "She travels to Paris every year.", 1),
-//        ),
-//        verbForms = VerbForms(
-//            infinitive = "travel",
-//            presentI = "travel",
-//            presentYou = "travel",
-//            presentHe = "travels",
-//            presentWe = "travel",
-//            presentThey = "travel",
-//            pastSimple = "travelled",
-//            pastParticiple = "travelled",
-//            gerund = "travelling",
-//        ),
+        contexts = listOf(
+            ContextSentence("c2", "She travels to Paris every year.", 1),
+        ),
+        verbForms = VerbForms(
+            infinitive = "travel",
+            presentI = "travel",
+            presentYou = "travel",
+            presentHe = "travels",
+            presentWe = "travel",
+            presentThey = "travel",
+            pastSimple = "travelled",
+            pastParticiple = "travelled",
+            gerund = "travelling",
+        ),
     ),
     Word(id = "4", en = "passport", pl = "paszport", partOfSpeech = PartOfSpeech.Noun),
     Word(id = "5", en = "identity", pl = "tożsamość", partOfSpeech = PartOfSpeech.Noun),
@@ -92,20 +110,20 @@ val InitialWords: List<Word> = listOf(
         en = "speak",
         pl = "mówić",
         partOfSpeech = PartOfSpeech.Verb,
-//        contexts = listOf(
-//            ContextSentence("c3", "She spoke fluent French at the meeting.", 1),
-//        ),
-//        verbForms = VerbForms(
-//            infinitive = "speak",
-//            presentI = "speak",
-//            presentYou = "speak",
-//            presentHe = "speaks",
-//            presentWe = "speak",
-//            presentThey = "speak",
-//            pastSimple = "spoke",
-//            pastParticiple = "spoken",
-//            gerund = "speaking",
-//        ),
+        contexts = listOf(
+            ContextSentence("c3", "She spoke fluent French at the meeting.", 1),
+        ),
+        verbForms = VerbForms(
+            infinitive = "speak",
+            presentI = "speak",
+            presentYou = "speak",
+            presentHe = "speaks",
+            presentWe = "speak",
+            presentThey = "speak",
+            pastSimple = "spoke",
+            pastParticiple = "spoken",
+            gerund = "speaking",
+        ),
     ),
     Word(id = "7", en = "freedom", pl = "wolność", partOfSpeech = PartOfSpeech.Noun),
     Word(id = "8", en = "law", pl = "prawo", partOfSpeech = PartOfSpeech.Noun),
@@ -114,17 +132,17 @@ val InitialWords: List<Word> = listOf(
         en = "choose",
         pl = "wybierać",
         partOfSpeech = PartOfSpeech.Verb,
-//        verbForms = VerbForms(
-//            infinitive = "choose",
-//            presentI = "choose",
-//            presentYou = "choose",
-//            presentHe = "chooses",
-//            presentWe = "choose",
-//            presentThey = "choose",
-//            pastSimple = "chose",
-//            pastParticiple = "chosen",
-//            gerund = "choosing",
-//        ),
+        verbForms = VerbForms(
+            infinitive = "choose",
+            presentI = "choose",
+            presentYou = "choose",
+            presentHe = "chooses",
+            presentWe = "choose",
+            presentThey = "choose",
+            pastSimple = "chose",
+            pastParticiple = "chosen",
+            gerund = "choosing",
+        ),
     ),
     Word(id = "10", en = "democracy", pl = "demokracja", partOfSpeech = PartOfSpeech.Noun),
 )

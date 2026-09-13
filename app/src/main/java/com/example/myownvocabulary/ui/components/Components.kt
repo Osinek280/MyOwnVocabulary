@@ -1,5 +1,6 @@
 package com.example.myownvocabulary.ui.components
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
@@ -20,6 +21,30 @@ fun posColor(partOfSpeech: PartOfSpeech): Color {
 }
 
 fun PartOfSpeech.badgeLabel(): String = name.lowercase()
+
+@Composable
+fun BackButton(
+    onPress: () -> Unit,
+    color: Color = MaterialTheme.colorScheme.onBackground,
+) {
+    androidx.compose.foundation.Canvas(
+        modifier = Modifier
+            .size(24.dp)
+            .clickable(onClick = onPress),
+    ) {
+        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
+            width = 2.dp.toPx(),
+            cap = androidx.compose.ui.graphics.StrokeCap.Round,
+            join = androidx.compose.ui.graphics.StrokeJoin.Round,
+        )
+        val path = androidx.compose.ui.graphics.Path().apply {
+            moveTo(14.dp.toPx(), 5.dp.toPx())
+            lineTo(7.dp.toPx(), 12.dp.toPx())
+            lineTo(14.dp.toPx(), 19.dp.toPx())
+        }
+        drawPath(path, color, style = stroke)
+    }
+}
 
 @Composable
 fun ChevronRight(color: Color = MaterialTheme.colorScheme.outlineVariant) {

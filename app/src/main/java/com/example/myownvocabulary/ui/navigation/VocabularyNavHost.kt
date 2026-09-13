@@ -13,6 +13,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.myownvocabulary.ui.screens.AddWordScreen
 import com.example.myownvocabulary.ui.screens.HomeScreen
 
 @Composable
@@ -42,7 +43,9 @@ fun VocabularyNavHost() {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(Routes.Words) {
-                HomeScreen()
+                HomeScreen(
+                    onAddClick = { navController.navigate(Routes.AddWord) },
+                )
             }
 
             composable(Routes.Learn) {
@@ -51,6 +54,12 @@ fun VocabularyNavHost() {
 
             composable(Routes.Settings) {
                 Text("Settings Page")
+            }
+
+            composable(Routes.AddWord) {
+                AddWordScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
         }
     }
