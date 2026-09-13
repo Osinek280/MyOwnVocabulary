@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -39,25 +38,25 @@ import com.example.myownvocabulary.ui.components.BackButton
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddWordScreen(
-    word: Word = Word(id = "", en = "", pl = "", partOfSpeech = PartOfSpeech.Noun),
+    word: Word = Word(id = "", term = "", translation = "", partOfSpeech = PartOfSpeech.Noun),
     onBack: () -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
     val isNew = word.id.isEmpty()
-    var en by remember { mutableStateOf(word.en) }
-    var pl by remember { mutableStateOf(word.pl) }
+    var term by remember { mutableStateOf(word.term) }
+    var pl by remember { mutableStateOf(word.translation) }
     var pos by remember { mutableStateOf(word.partOfSpeech) }
     var contexts by remember { mutableStateOf(word.contexts) }
     var confirmDelete by remember { mutableStateOf(false) }
     var verbForms by remember {
         mutableStateOf(
             word.verbForms ?: VerbForms(
-                infinitive = word.en,
-                presentI = word.en,
-                presentYou = word.en,
-                presentHe = word.en + "s",
-                presentWe = word.en,
-                presentThey = word.en,
+                infinitive = word.term,
+                presentI = word.term,
+                presentYou = word.term,
+                presentHe = word.term + "s",
+                presentWe = word.term,
+                presentThey = word.term,
                 pastSimple = "",
                 pastParticiple = "",
                 gerund = "",
@@ -73,8 +72,8 @@ fun AddWordScreen(
     fun handleSave() {
 //        onSave(
 //            word.copy(
-//                en = en.trim().ifEmpty { word.en },
-//                pl = pl.trim().ifEmpty { word.pl },
+//                term = term.trim().ifEmpty { word.term },
+//                translation = translation.trim().ifEmpty { word.translation },
 //                partOfSpeech = pos,
 //                contexts = contexts,
 //                verbForms = if (pos == PartOfSpeech.Verb) verbForms else null,
@@ -136,7 +135,7 @@ fun AddWordScreen(
                     ) {
                         Text("ANGIELSKI", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
                         Spacer(Modifier.height(4.dp))
-                        SimpleField(en, { en = it }, FontWeight.SemiBold, colors.onSurface)
+                        SimpleField(term, { term = it }, FontWeight.SemiBold, colors.onSurface)
                     }
                     Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)) {
                         Text("POLSKI", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)

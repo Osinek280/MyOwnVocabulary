@@ -65,8 +65,8 @@ data class VerbForms(
 
 data class Word(
     val id: String,
-    val en: String,
-    val pl: String,
+    val term: String,
+    val translation: String,
     val partOfSpeech: PartOfSpeech,
     val contexts: List<ContextSentence> = emptyList(),
     val verbForms: VerbForms? = null,
@@ -75,18 +75,18 @@ data class Word(
 val InitialWords: List<Word> = listOf(
     Word(
         id = "1",
-        en = "citizen",
-        pl = "obywatel / obywatelka",
+        term = "citizen",
+        translation = "obywatel / obywatelka",
         partOfSpeech = PartOfSpeech.Noun,
         contexts = listOf(
             ContextSentence("c1", "Every citizen has the right to vote.", 1),
         ),
     ),
-    Word(id = "2", en = "address", pl = "adres", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "2", term = "address", translation = "adres", partOfSpeech = PartOfSpeech.Noun),
     Word(
         id = "3",
-        en = "travel",
-        pl = "podróżować",
+        term = "travel",
+        translation = "podróżować",
         partOfSpeech = PartOfSpeech.Verb,
         contexts = listOf(
             ContextSentence("c2", "She travels to Paris every year.", 1),
@@ -103,12 +103,12 @@ val InitialWords: List<Word> = listOf(
             gerund = "travelling",
         ),
     ),
-    Word(id = "4", en = "passport", pl = "paszport", partOfSpeech = PartOfSpeech.Noun),
-    Word(id = "5", en = "identity", pl = "tożsamość", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "4", term = "passport", translation = "paszport", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "5", term = "identity", translation = "tożsamość", partOfSpeech = PartOfSpeech.Noun),
     Word(
         id = "6",
-        en = "speak",
-        pl = "mówić",
+        term = "speak",
+        translation = "mówić",
         partOfSpeech = PartOfSpeech.Verb,
         contexts = listOf(
             ContextSentence("c3", "She spoke fluent French at the meeting.", 1),
@@ -125,12 +125,12 @@ val InitialWords: List<Word> = listOf(
             gerund = "speaking",
         ),
     ),
-    Word(id = "7", en = "freedom", pl = "wolność", partOfSpeech = PartOfSpeech.Noun),
-    Word(id = "8", en = "law", pl = "prawo", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "7", term = "freedom", translation = "wolność", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "8", term = "law", translation = "prawo", partOfSpeech = PartOfSpeech.Noun),
     Word(
         id = "9",
-        en = "choose",
-        pl = "wybierać",
+        term = "choose",
+        translation = "wybierać",
         partOfSpeech = PartOfSpeech.Verb,
         verbForms = VerbForms(
             infinitive = "choose",
@@ -144,7 +144,7 @@ val InitialWords: List<Word> = listOf(
             gerund = "choosing",
         ),
     ),
-    Word(id = "10", en = "democracy", pl = "demokracja", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "10", term = "democracy", translation = "demokracja", partOfSpeech = PartOfSpeech.Noun),
 )
 
 @Composable
@@ -155,7 +155,7 @@ fun HomeScreen(
     val colors = MaterialTheme.colorScheme
     var search by remember { mutableStateOf("") }
     val filtered = words.filter {
-        it.en.contains(search, ignoreCase = true) || it.pl.contains(search, ignoreCase = true)
+        it.term.contains(search, ignoreCase = true) || it.translation.contains(search, ignoreCase = true)
     }
 
     Column(
@@ -269,7 +269,7 @@ private fun WordRow(word: Word) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            Text(word.en, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = colors.onSurface)
+            Text(word.term, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = colors.onSurface)
             Text(
                 word.partOfSpeech.badgeLabel(),
                 fontSize = 10.sp,
@@ -285,7 +285,7 @@ private fun WordRow(word: Word) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp),
         ) {
-            Text(word.pl, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = colors.outline)
+            Text(word.translation, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = colors.outline)
             ChevronRight()
         }
     }
