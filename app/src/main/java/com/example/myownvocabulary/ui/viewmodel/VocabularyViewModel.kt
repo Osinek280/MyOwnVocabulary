@@ -14,10 +14,24 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 
+data class WordsUiState(
+    val words: List<Word> = emptyList(),
+    val isLoading: Boolean = true,
+)
+
 class VocabularyViewModel(private val dao: WordDao) : ViewModel() {
-    val words: StateFlow<List<Word>> = dao.observeAll()
-        .map { list -> list.map { it.toWord() } }
-        .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
+    val uiState: StateFlow<WordsUiState> = dao.observeAll()
+        .map {
+            list -> WordsUiState(
+                words = list.map { it.toWord() },
+                isLoading = false
+            )
+        }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = WordsUiState(isLoading = true),
+        )
 
     fun save(term: String, translation: String, pos: PartOfSpeech, languageCode: String) {
         viewModelScope.launch {

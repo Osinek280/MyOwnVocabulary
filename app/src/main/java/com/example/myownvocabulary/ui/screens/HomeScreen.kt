@@ -13,12 +13,15 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -120,7 +123,8 @@ val InitialWords: List<Word> = listOf(
 
 @Composable
 fun HomeScreen(
-    words: List<Word> = InitialWords,
+    words: List<Word>,
+    isLoading: Boolean,
     onAddClick: () -> Unit = {},
 ) {
     val colors = MaterialTheme.colorScheme
@@ -200,24 +204,46 @@ fun HomeScreen(
                 )
             }
         }
-
-        LazyColumn(
-            modifier = Modifier
-                .weight(1f)
-                .padding(horizontal = 20.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            item {
-                Text(
-                    "${filtered.size} słówek",
-                    fontSize = 12.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = colors.outline,
-                    modifier = Modifier.padding(bottom = 4.dp),
-                )
+        when {
+            isLoading -> {
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth(),
+                    contentAlignment = Alignment.Center,
+                ) {
+                    CircularProgressIndicator(color = colors.primary)
+                }
             }
-            items(filtered, key = { it.id }) { word ->
-                WordRow(word)
+
+            words.isEmpty() -> {
+                EmptyVocabularyState(onAddClick = onAddClick)
+            }
+
+            filtered.isEmpty() -> {
+                EmptySearchState(query = search)
+            }
+
+            else -> {
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(horizontal = 20.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp),
+                ) {
+                    item {
+                        Text(
+                            "${filtered.size} słówek",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = colors.outline,
+                            modifier = Modifier.padding(bottom = 4.dp),
+                        )
+                    }
+                    items(filtered, key = { it.id }) { word ->
+                        WordRow(word)
+                    }
+                }
             }
         }
     }
@@ -259,5 +285,59 @@ private fun WordRow(word: Word) {
             Text(word.translation, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = colors.outline)
             ChevronRight()
         }
+    }
+}
+
+@Composable
+private fun EmptyVocabularyState(onAddClick: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            "Brak słówek",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = colors.onBackground,
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Dodaj pierwsze słówko, żeby zacząć naukę.",
+            fontSize = 14.sp,
+            color = colors.outline,
+        )
+        Spacer(Modifier.height(20.dp))
+        Button(onClick = onAddClick) {
+            Text("Dodaj słówko")
+        }
+    }
+}
+
+@Composable
+private fun EmptySearchState(query: String) {
+    val colors = MaterialTheme.colorScheme
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(horizontal = 32.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally,
+    ) {
+        Text(
+            "Nic nie znaleziono",
+            fontSize = 18.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = colors.onBackground,
+        )
+        Spacer(Modifier.height(8.dp))
+        Text(
+            "Brak wyników dla „$query”.",
+            fontSize = 14.sp,
+            color = colors.outline,
+        )
     }
 }

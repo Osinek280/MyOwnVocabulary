@@ -43,7 +43,7 @@ fun VocabularyNavHost() {
             )
         },
     )
-    val words by viewModel.words.collectAsStateWithLifecycle()
+    val uiState by viewModel.uiState.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = colors.background,
@@ -64,7 +64,8 @@ fun VocabularyNavHost() {
         ) {
             composable(Routes.Words) {
                 HomeScreen(
-                    words = words,
+                    words = uiState.words,
+                    isLoading = uiState.isLoading,
                     onAddClick = { navController.navigate(Routes.AddWord) },
                 )
             }
