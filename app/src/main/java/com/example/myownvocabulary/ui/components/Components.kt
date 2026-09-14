@@ -88,6 +88,23 @@ fun PlusIcon(color: Color = MaterialTheme.colorScheme.onPrimary, iconSize: Int =
 }
 
 @Composable
+fun CheckIcon(color: Color = MaterialTheme.colorScheme.primary) {
+    androidx.compose.foundation.Canvas(modifier = Modifier.size(18.dp)) {
+        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
+            width = 2.dp.toPx(),
+            cap = androidx.compose.ui.graphics.StrokeCap.Round,
+            join = androidx.compose.ui.graphics.StrokeJoin.Round,
+        )
+        val path = androidx.compose.ui.graphics.Path().apply {
+            moveTo(3.dp.toPx(), 9.dp.toPx())
+            lineTo(7.dp.toPx(), 13.dp.toPx())
+            lineTo(15.dp.toPx(), 4.dp.toPx())
+        }
+        drawPath(path, color, style = stroke)
+    }
+}
+
+@Composable
 fun SearchIcon(color: Color = MaterialTheme.colorScheme.outline) {
     androidx.compose.foundation.Canvas(modifier = Modifier.size(16.dp)) {
         val stroke = androidx.compose.ui.graphics.drawscope.Stroke(

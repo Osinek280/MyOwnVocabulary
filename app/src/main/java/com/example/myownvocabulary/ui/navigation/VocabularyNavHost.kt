@@ -67,10 +67,16 @@ fun VocabularyNavHost() {
             modifier = Modifier.padding(innerPadding),
         ) {
             composable(Routes.Words) {
+                val selectedIds by viewModel.selectedIds.collectAsStateWithLifecycle()
                 HomeScreen(
                     words = uiState.words,
                     isLoading = uiState.isLoading,
                     onAddClick = { navController.navigate(Routes.AddWord) },
+                    onToggleSelect = viewModel::toggleSelection,
+                    onEnterSelection = viewModel::enterSelection,
+                    onClearSelection = viewModel::clearSelection,
+                    onDeleteSelected = viewModel::deleteSelected,
+                    selectedIds = selectedIds,
                 )
             }
 

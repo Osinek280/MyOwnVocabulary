@@ -1,7 +1,6 @@
 package com.example.myownvocabulary.data.word
 
 import androidx.room.Dao
-import androidx.room.Delete
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
@@ -22,6 +21,6 @@ interface WordDao {
     @Update
     suspend fun update(word: WordEntity)
 
-    @Delete
-    suspend fun delete(word: WordEntity)
+    @Query("DELETE FROM words WHERE id IN (:ids)")
+    suspend fun deleteByIds(ids: List<String>)
 }

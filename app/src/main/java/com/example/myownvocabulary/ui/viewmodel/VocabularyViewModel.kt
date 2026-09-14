@@ -10,10 +10,13 @@ import com.example.myownvocabulary.data.word.WordDao
 import com.example.myownvocabulary.data.word.WordEntity
 import com.example.myownvocabulary.model.Word
 import com.example.myownvocabulary.model.toWord
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class WordsUiState(
@@ -37,6 +40,34 @@ class VocabularyViewModel(
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = WordsUiState(isLoading = true),
         )
+
+    private val _selectedIds = MutableStateFlow<Set<String>>(emptySet())
+    val selectedIds: StateFlow<Set<String>> = _selectedIds.asStateFlow()
+
+    val isSelectionMode: Boolean
+        get() = _selectedIds.value.isNotEmpty()
+
+    fun toggleSelection(id: String) {
+        _selectedIds.update { current ->
+            if (id in current) current - id else current + id
+        }
+    }
+
+    fun enterSelection(id: String) {
+        _selectedIds.value = setOf(id)
+    }
+
+    fun clearSelection() {
+        _selectedIds.value = emptySet()
+    }
+
+    fun deleteSelected() {
+        viewModelScope.launch {
+            val ids = _selectedIds.value.toList()
+            if (ids.isNotEmpty()) dao.deleteByIds(ids)
+            clearSelection()
+        }
+    }
 
     val recentLanguages: StateFlow<List<Language>> = userPreferences.recentLanguages
         .stateIn(
@@ -68,12 +99,6 @@ class VocabularyViewModel(
                     partOfSpeech = pos,
                 )
             )
-        }
-    }
-
-    fun delete(word: Word) {
-        viewModelScope.launch {
-            dao.getById(word.id)?.let { dao.delete(it) }
         }
     }
 }

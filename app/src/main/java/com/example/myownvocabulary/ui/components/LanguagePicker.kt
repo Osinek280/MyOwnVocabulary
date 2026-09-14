@@ -44,14 +44,8 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myownvocabulary.data.word.Language
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Path
-import androidx.compose.ui.graphics.StrokeCap
-import androidx.compose.ui.graphics.StrokeJoin
-import androidx.compose.ui.graphics.drawscope.Stroke
 
 @Composable
 fun LanguagePicker(
@@ -333,22 +327,5 @@ private fun LanguageOptionRow(
         if (selected) {
             CheckIcon(color = colors.primary)
         }
-    }
-}
-
-@Composable
-private fun CheckIcon(color: Color) {
-    Canvas(modifier = Modifier.size(18.dp)) {
-        val stroke = Stroke(
-            width = 2.dp.toPx(),
-            cap = StrokeCap.Round,
-            join = StrokeJoin.Round,
-        )
-        val path = Path().apply {
-            moveTo(3.dp.toPx(), 9.dp.toPx())
-            lineTo(7.dp.toPx(), 13.dp.toPx())
-            lineTo(15.dp.toPx(), 4.dp.toPx())
-        }
-        drawPath(path, color, style = stroke)
     }
 }
