@@ -8,7 +8,7 @@ import androidx.room.TypeConverters
 import com.example.myownvocabulary.data.word.WordDao
 import com.example.myownvocabulary.data.word.WordEntity
 
-@Database(entities = [WordEntity::class], version = 2, exportSchema = false)
+@Database(entities = [WordEntity::class], version = 3, exportSchema = false)
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun wordDao(): WordDao
