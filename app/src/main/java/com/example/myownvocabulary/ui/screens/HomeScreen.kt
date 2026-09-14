@@ -23,8 +23,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -44,6 +42,9 @@ import com.example.myownvocabulary.ui.components.PlusIcon
 import com.example.myownvocabulary.ui.components.SearchBar
 import com.example.myownvocabulary.ui.components.badgeLabel
 import com.example.myownvocabulary.ui.components.posColor
+import com.example.myownvocabulary.ui.components.states.EmptySearchState
+import com.example.myownvocabulary.ui.components.states.EmptyVocabularyState
+import com.example.myownvocabulary.ui.components.states.LoadingState
 
 @Composable
 fun HomeScreen(
@@ -123,14 +124,10 @@ fun HomeScreen(
         }
         when {
             isLoading -> {
-                Box(
-                    modifier = Modifier
-                        .weight(1f)
-                        .fillMaxWidth(),
-                    contentAlignment = Alignment.Center,
-                ) {
-                    CircularProgressIndicator(color = colors.primary)
-                }
+                LoadingState(modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                )
             }
 
             words.isEmpty() -> {
@@ -283,59 +280,5 @@ private fun WordRow(
                 ChevronRight()
             }
         }
-    }
-}
-
-@Composable
-private fun EmptyVocabularyState(onAddClick: () -> Unit) {
-    val colors = MaterialTheme.colorScheme
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            "Brak słówek",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = colors.onBackground,
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            "Dodaj pierwsze słówko, żeby zacząć naukę.",
-            fontSize = 14.sp,
-            color = colors.outline,
-        )
-        Spacer(Modifier.height(20.dp))
-        Button(onClick = onAddClick) {
-            Text("Dodaj słówko")
-        }
-    }
-}
-
-@Composable
-private fun EmptySearchState(query: String) {
-    val colors = MaterialTheme.colorScheme
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp),
-        verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        Text(
-            "Nic nie znaleziono",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = colors.onBackground,
-        )
-        Spacer(Modifier.height(8.dp))
-        Text(
-            "Brak wyników dla „$query”.",
-            fontSize = 14.sp,
-            color = colors.outline,
-        )
     }
 }
