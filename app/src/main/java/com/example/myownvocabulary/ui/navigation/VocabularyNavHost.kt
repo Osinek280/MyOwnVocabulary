@@ -6,15 +6,22 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import com.example.myownvocabulary.data.AppDatabase
 import com.example.myownvocabulary.ui.screens.AddWordScreen
 import com.example.myownvocabulary.ui.screens.HomeScreen
+import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModel
+import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModelFactory
 
 @Composable
 fun VocabularyNavHost() {
@@ -22,9 +29,22 @@ fun VocabularyNavHost() {
     val onTabSelected: (String) -> Unit = { route ->
         navController.navigateToTab(route)
     }
+
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+
     val colors = MaterialTheme.colorScheme
+
+    val context = LocalContext.current
+    val viewModel: VocabularyViewModel = viewModel(
+        factory = remember {
+            VocabularyViewModelFactory(
+                AppDatabase.getInstance(context.applicationContext).wordDao(),
+            )
+        },
+    )
+    val words by viewModel.words.collectAsStateWithLifecycle()
+
     Scaffold(
         containerColor = colors.background,
         contentColor = colors.onBackground,
@@ -44,6 +64,7 @@ fun VocabularyNavHost() {
         ) {
             composable(Routes.Words) {
                 HomeScreen(
+                    words = words,
                     onAddClick = { navController.navigate(Routes.AddWord) },
                 )
             }
@@ -58,7 +79,11 @@ fun VocabularyNavHost() {
 
             composable(Routes.AddWord) {
                 AddWordScreen(
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onSave = { term, translation, pos ->
+                        viewModel.save(term, translation, pos, "en")
+                        navController.popBackStack()
+                    },
                 )
             }
         }

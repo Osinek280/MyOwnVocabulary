@@ -31,120 +31,91 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import com.example.myownvocabulary.data.word.PartOfSpeech
+import com.example.myownvocabulary.model.Word
 import com.example.myownvocabulary.ui.components.ChevronRight
 import com.example.myownvocabulary.ui.components.PlusIcon
 import com.example.myownvocabulary.ui.components.SearchIcon
 import com.example.myownvocabulary.ui.components.badgeLabel
 import com.example.myownvocabulary.ui.components.posColor
 
-enum class PartOfSpeech {
-    Noun,
-    Verb,
-    Adjective,
-    Adverb,
-    Other,
-}
-
-data class ContextSentence(
-    val id: String,
-    val sentence: String,
-    val highlightIndex: Int? = null,
-)
-
-data class VerbForms(
-    val infinitive: String,
-    val presentI: String,
-    val presentYou: String,
-    val presentHe: String,
-    val presentWe: String,
-    val presentThey: String,
-    val pastSimple: String,
-    val pastParticiple: String,
-    val gerund: String,
-)
-
-data class Word(
-    val id: String,
-    val term: String,
-    val translation: String,
-    val partOfSpeech: PartOfSpeech,
-    val contexts: List<ContextSentence> = emptyList(),
-    val verbForms: VerbForms? = null,
-)
-
 val InitialWords: List<Word> = listOf(
     Word(
         id = "1",
         term = "citizen",
         translation = "obywatel / obywatelka",
+        languageCode = "en",
         partOfSpeech = PartOfSpeech.Noun,
-        contexts = listOf(
-            ContextSentence("c1", "Every citizen has the right to vote.", 1),
-        ),
+//        contexts = listOf(
+//            ContextSentence("c1", "Every citizen has the right to vote.", 1),
+//        ),
     ),
-    Word(id = "2", term = "address", translation = "adres", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "2", term = "address", translation = "adres", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
     Word(
         id = "3",
         term = "travel",
         translation = "podróżować",
+        languageCode = "en",
         partOfSpeech = PartOfSpeech.Verb,
-        contexts = listOf(
-            ContextSentence("c2", "She travels to Paris every year.", 1),
-        ),
-        verbForms = VerbForms(
-            infinitive = "travel",
-            presentI = "travel",
-            presentYou = "travel",
-            presentHe = "travels",
-            presentWe = "travel",
-            presentThey = "travel",
-            pastSimple = "travelled",
-            pastParticiple = "travelled",
-            gerund = "travelling",
-        ),
+//        contexts = listOf(
+//            ContextSentence("c2", "She travels to Paris every year.", 1),
+//        ),
+//        verbForms = VerbForms(
+//            infinitive = "travel",
+//            presentI = "travel",
+//            presentYou = "travel",
+//            presentHe = "travels",
+//            presentWe = "travel",
+//            presentThey = "travel",
+//            pastSimple = "travelled",
+//            pastParticiple = "travelled",
+//            gerund = "travelling",
+//        ),
     ),
-    Word(id = "4", term = "passport", translation = "paszport", partOfSpeech = PartOfSpeech.Noun),
-    Word(id = "5", term = "identity", translation = "tożsamość", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "4", term = "passport", translation = "paszport", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "5", term = "identity", translation = "tożsamość", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
     Word(
         id = "6",
         term = "speak",
         translation = "mówić",
         partOfSpeech = PartOfSpeech.Verb,
-        contexts = listOf(
-            ContextSentence("c3", "She spoke fluent French at the meeting.", 1),
-        ),
-        verbForms = VerbForms(
-            infinitive = "speak",
-            presentI = "speak",
-            presentYou = "speak",
-            presentHe = "speaks",
-            presentWe = "speak",
-            presentThey = "speak",
-            pastSimple = "spoke",
-            pastParticiple = "spoken",
-            gerund = "speaking",
-        ),
+        languageCode = "en",
+//        contexts = listOf(
+//            ContextSentence("c3", "She spoke fluent French at the meeting.", 1),
+//        ),
+//        verbForms = VerbForms(
+//            infinitive = "speak",
+//            presentI = "speak",
+//            presentYou = "speak",
+//            presentHe = "speaks",
+//            presentWe = "speak",
+//            presentThey = "speak",
+//            pastSimple = "spoke",
+//            pastParticiple = "spoken",
+//            gerund = "speaking",
+//        ),
     ),
-    Word(id = "7", term = "freedom", translation = "wolność", partOfSpeech = PartOfSpeech.Noun),
-    Word(id = "8", term = "law", translation = "prawo", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "7", term = "freedom", translation = "wolność", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "8", term = "law", translation = "prawo", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
     Word(
         id = "9",
         term = "choose",
         translation = "wybierać",
         partOfSpeech = PartOfSpeech.Verb,
-        verbForms = VerbForms(
-            infinitive = "choose",
-            presentI = "choose",
-            presentYou = "choose",
-            presentHe = "chooses",
-            presentWe = "choose",
-            presentThey = "choose",
-            pastSimple = "chose",
-            pastParticiple = "chosen",
-            gerund = "choosing",
-        ),
+        languageCode = "en",
+//        verbForms = VerbForms(
+//            infinitive = "choose",
+//            presentI = "choose",
+//            presentYou = "choose",
+//            presentHe = "chooses",
+//            presentWe = "choose",
+//            presentThey = "choose",
+//            pastSimple = "chose",
+//            pastParticiple = "chosen",
+//            gerund = "choosing",
+//        ),
     ),
-    Word(id = "10", term = "democracy", translation = "demokracja", partOfSpeech = PartOfSpeech.Noun),
+    Word(id = "10", term = "democracy", translation = "demokracja", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
 )
 
 @Composable

@@ -6,7 +6,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -33,54 +32,21 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myownvocabulary.data.word.PartOfSpeech
+import com.example.myownvocabulary.model.Word
 import com.example.myownvocabulary.ui.components.BackButton
 
-@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun AddWordScreen(
-    word: Word = Word(id = "", term = "", translation = "", partOfSpeech = PartOfSpeech.Noun),
+    word: Word = Word(id = "", term = "", translation = "", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
     onBack: () -> Unit = {},
+    onSave: (String, String, PartOfSpeech) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     val isNew = word.id.isEmpty()
     var term by remember { mutableStateOf(word.term) }
-    var pl by remember { mutableStateOf(word.translation) }
+    var translation by remember { mutableStateOf(word.translation) }
     var pos by remember { mutableStateOf(word.partOfSpeech) }
-    var contexts by remember { mutableStateOf(word.contexts) }
-    var confirmDelete by remember { mutableStateOf(false) }
-    var verbForms by remember {
-        mutableStateOf(
-            word.verbForms ?: VerbForms(
-                infinitive = word.term,
-                presentI = word.term,
-                presentYou = word.term,
-                presentHe = word.term + "s",
-                presentWe = word.term,
-                presentThey = word.term,
-                pastSimple = "",
-                pastParticiple = "",
-                gerund = "",
-            ),
-        )
-    }
-    var addingContext by remember { mutableStateOf(false) }
-    var contextDraft by remember { mutableStateOf("") }
-    var pendingContext by remember { mutableStateOf<ContextSentence?>(null) }
-
-    var expanded by remember { mutableStateOf(false) }
-
-    fun handleSave() {
-//        onSave(
-//            word.copy(
-//                term = term.trim().ifEmpty { word.term },
-//                translation = translation.trim().ifEmpty { word.translation },
-//                partOfSpeech = pos,
-//                contexts = contexts,
-//                verbForms = if (pos == PartOfSpeech.Verb) verbForms else null,
-//            ),
-//        )
-        onBack()
-    }
 
     Column(
         modifier = Modifier
@@ -105,7 +71,7 @@ fun AddWordScreen(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(colors.primary)
-                    .clickable { handleSave() }
+                    .clickable { onSave(term.trim(), translation, pos) }
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
                 Text("Zapisz", color = colors.onPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
@@ -140,7 +106,7 @@ fun AddWordScreen(
                     Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)) {
                         Text("POLSKI", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
                         Spacer(Modifier.height(4.dp))
-                        SimpleField(pl, { pl = it }, FontWeight.Medium, colors.onSurface)
+                        SimpleField(translation, { translation = it }, FontWeight.Medium, colors.onSurface)
                     }
                 }
             }
