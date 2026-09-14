@@ -50,6 +50,7 @@ fun AddWordScreen(
     var translation by remember { mutableStateOf(word.translation) }
     var pos by remember { mutableStateOf(word.partOfSpeech) }
     var language by remember { mutableStateOf(Language.fromCode(word.languageCode)) }
+    val canSave = term.trim().isNotEmpty() && translation.trim().isNotEmpty()
 
     Column(
         modifier = Modifier
@@ -65,7 +66,7 @@ fun AddWordScreen(
         ) {
             BackButton(onPress = onBack)
             Text(
-                if (isNew) "Nowe słówko" else "Edytuj słówko",
+                if (isNew) "Dodaj Nowe słowo" else "Edytuj słówko",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = colors.onBackground,
@@ -73,11 +74,18 @@ fun AddWordScreen(
             Box(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
-                    .background(colors.primary)
-                    .clickable { onSave(term.trim(), translation, pos, language.code) }
+                    .background(if (canSave) colors.primary else colors.surfaceVariant)
+                    .clickable(enabled = canSave) {
+                        onSave(term.trim(), translation.trim(), pos, language.code)
+                    }
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
-                Text("Zapisz", color = colors.onPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
+                Text(
+                    "Zapisz",
+                    color = if (canSave) colors.onPrimary else colors.outline,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                )
             }
         }
 
