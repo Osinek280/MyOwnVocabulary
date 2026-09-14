@@ -32,21 +32,24 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myownvocabulary.data.word.Language
 import com.example.myownvocabulary.data.word.PartOfSpeech
 import com.example.myownvocabulary.model.Word
 import com.example.myownvocabulary.ui.components.BackButton
+import com.example.myownvocabulary.ui.components.LanguagePicker
 
 @Composable
 fun AddWordScreen(
     word: Word = Word(id = "", term = "", translation = "", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
     onBack: () -> Unit = {},
-    onSave: (String, String, PartOfSpeech) -> Unit
+    onSave: (String, String, PartOfSpeech, String) -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     val isNew = word.id.isEmpty()
     var term by remember { mutableStateOf(word.term) }
     var translation by remember { mutableStateOf(word.translation) }
     var pos by remember { mutableStateOf(word.partOfSpeech) }
+    var language by remember { mutableStateOf(Language.fromCode(word.languageCode)) }
 
     Column(
         modifier = Modifier
@@ -71,7 +74,7 @@ fun AddWordScreen(
                 modifier = Modifier
                     .clip(RoundedCornerShape(12.dp))
                     .background(colors.primary)
-                    .clickable { onSave(term.trim(), translation, pos) }
+                    .clickable { onSave(term.trim(), translation, pos, language.code) }
                     .padding(horizontal = 16.dp, vertical = 8.dp),
             ) {
                 Text("Zapisz", color = colors.onPrimary, fontSize = 14.sp, fontWeight = FontWeight.SemiBold)
@@ -86,6 +89,14 @@ fun AddWordScreen(
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
             Column {
+                SectionLabel("Język")
+                LanguagePicker(
+                    selected = language,
+                    onSelect = { language = it },
+                )
+            }
+
+            Column {
                 SectionLabel("Słówko")
                 Column(
                     modifier = Modifier
@@ -99,12 +110,12 @@ fun AddWordScreen(
                             .border(width = 1.dp, color = colors.outlineVariant)
                             .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
                     ) {
-                        Text("ANGIELSKI", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
+                        Text("Słówko", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
                         Spacer(Modifier.height(4.dp))
                         SimpleField(term, { term = it }, FontWeight.SemiBold, colors.onSurface)
                     }
                     Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)) {
-                        Text("POLSKI", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
+                        Text("Tłumaczenie", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
                         Spacer(Modifier.height(4.dp))
                         SimpleField(translation, { translation = it }, FontWeight.Medium, colors.onSurface)
                     }
@@ -113,7 +124,6 @@ fun AddWordScreen(
         }
     }
 }
-
 
 @Composable
 private fun SectionLabel(text: String) {

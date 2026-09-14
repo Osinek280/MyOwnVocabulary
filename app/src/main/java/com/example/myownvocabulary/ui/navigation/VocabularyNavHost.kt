@@ -81,8 +81,8 @@ fun VocabularyNavHost() {
             composable(Routes.AddWord) {
                 AddWordScreen(
                     onBack = { navController.popBackStack() },
-                    onSave = { term, translation, pos ->
-                        viewModel.save(term, translation, pos, "en")
+                    onSave = { term, translation, pos, languageCode ->
+                        viewModel.save(term, translation, pos, languageCode)
                         navController.popBackStack()
                     },
                 )
