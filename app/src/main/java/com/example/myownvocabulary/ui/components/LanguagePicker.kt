@@ -17,7 +17,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -33,12 +32,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
@@ -153,46 +150,11 @@ private fun LanguagePickerSheet(
                 color = colors.onBackground,
                 modifier = Modifier.padding(bottom = 14.dp),
             )
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(colors.surfaceVariant)
-                    .padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                SearchIcon()
-                val searchStyle = TextStyle(
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp,
-                    color = colors.onSurface,
-                )
-                BasicTextField(
-                    value = query,
-                    onValueChange = { query = it },
-                    singleLine = true,
-                    textStyle = searchStyle,
-                    cursorBrush = SolidColor(colors.primary),
-                    modifier = Modifier.weight(1f),
-                    decorationBox = { inner ->
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.CenterStart,
-                        ) {
-                            if (query.isEmpty()) {
-                                Text(
-                                    text = "Szukaj języka...",
-                                    style = searchStyle.copy(color = colors.outline),
-                                    maxLines = 1,
-                                )
-                            }
-                            inner()
-                        }
-                    },
-                )
-            }
+            SearchBar(
+                value = query,
+                onValueChange = { query = it },
+                placeholder = "Szukaj języka..."
+            )
             Spacer(Modifier.height(12.dp))
             LazyColumn(
                 state = listState,

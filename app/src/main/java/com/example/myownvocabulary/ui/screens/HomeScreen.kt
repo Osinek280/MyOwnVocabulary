@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -37,96 +36,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
-import com.example.myownvocabulary.data.word.PartOfSpeech
 import com.example.myownvocabulary.model.Word
 import com.example.myownvocabulary.ui.components.CheckIcon
 import com.example.myownvocabulary.ui.components.ChevronRight
 import com.example.myownvocabulary.ui.components.PlusIcon
-import com.example.myownvocabulary.ui.components.SearchIcon
+import com.example.myownvocabulary.ui.components.SearchBar
 import com.example.myownvocabulary.ui.components.badgeLabel
 import com.example.myownvocabulary.ui.components.posColor
-
-val InitialWords: List<Word> = listOf(
-    Word(
-        id = "1",
-        term = "citizen",
-        translation = "obywatel / obywatelka",
-        languageCode = "en",
-        partOfSpeech = PartOfSpeech.Noun,
-//        contexts = listOf(
-//            ContextSentence("c1", "Every citizen has the right to vote.", 1),
-//        ),
-    ),
-    Word(id = "2", term = "address", translation = "adres", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
-    Word(
-        id = "3",
-        term = "travel",
-        translation = "podróżować",
-        languageCode = "en",
-        partOfSpeech = PartOfSpeech.Verb,
-//        contexts = listOf(
-//            ContextSentence("c2", "She travels to Paris every year.", 1),
-//        ),
-//        verbForms = VerbForms(
-//            infinitive = "travel",
-//            presentI = "travel",
-//            presentYou = "travel",
-//            presentHe = "travels",
-//            presentWe = "travel",
-//            presentThey = "travel",
-//            pastSimple = "travelled",
-//            pastParticiple = "travelled",
-//            gerund = "travelling",
-//        ),
-    ),
-    Word(id = "4", term = "passport", translation = "paszport", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
-    Word(id = "5", term = "identity", translation = "tożsamość", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
-    Word(
-        id = "6",
-        term = "speak",
-        translation = "mówić",
-        partOfSpeech = PartOfSpeech.Verb,
-        languageCode = "en",
-//        contexts = listOf(
-//            ContextSentence("c3", "She spoke fluent French at the meeting.", 1),
-//        ),
-//        verbForms = VerbForms(
-//            infinitive = "speak",
-//            presentI = "speak",
-//            presentYou = "speak",
-//            presentHe = "speaks",
-//            presentWe = "speak",
-//            presentThey = "speak",
-//            pastSimple = "spoke",
-//            pastParticiple = "spoken",
-//            gerund = "speaking",
-//        ),
-    ),
-    Word(id = "7", term = "freedom", translation = "wolność", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
-    Word(id = "8", term = "law", translation = "prawo", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
-    Word(
-        id = "9",
-        term = "choose",
-        translation = "wybierać",
-        partOfSpeech = PartOfSpeech.Verb,
-        languageCode = "en",
-//        verbForms = VerbForms(
-//            infinitive = "choose",
-//            presentI = "choose",
-//            presentYou = "choose",
-//            presentHe = "chooses",
-//            presentWe = "choose",
-//            presentThey = "choose",
-//            pastSimple = "chose",
-//            pastParticiple = "chosen",
-//            gerund = "choosing",
-//        ),
-    ),
-    Word(id = "10", term = "democracy", translation = "demokracja", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
-)
 
 @Composable
 fun HomeScreen(
@@ -198,46 +115,11 @@ fun HomeScreen(
                     PlusIcon()
                 }
             }
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(48.dp)
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(colors.surfaceVariant)
-                    .padding(horizontal = 14.dp),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-            ) {
-                SearchIcon()
-                val searchStyle = TextStyle(
-                    fontSize = 14.sp,
-                    lineHeight = 20.sp,
-                    color = colors.onSurface,
-                )
-                BasicTextField(
-                    value = search,
-                    onValueChange = { search = it },
-                    singleLine = true,
-                    textStyle = searchStyle,
-                    cursorBrush = SolidColor(colors.primary),
-                    modifier = Modifier.weight(1f),
-                    decorationBox = { inner ->
-                        Box(
-                            modifier = Modifier.fillMaxWidth(),
-                            contentAlignment = Alignment.CenterStart,
-                        ) {
-                            if (search.isEmpty()) {
-                                Text(
-                                    text = "Szukaj słówka...",
-                                    style = searchStyle.copy(color = colors.outline),
-                                    maxLines = 1,
-                                )
-                            }
-                            inner()
-                        }
-                    },
-                )
-            }
+            SearchBar(
+                value = search,
+                onValueChange = { search = it },
+                placeholder = "Szukaj słówka..."
+            )
         }
         when {
             isLoading -> {
