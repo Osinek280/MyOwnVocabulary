@@ -3,6 +3,8 @@ package com.example.myownvocabulary.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.myownvocabulary.data.prefs.UserPreferences
+import com.example.myownvocabulary.data.word.Language
 import com.example.myownvocabulary.data.word.PartOfSpeech
 import com.example.myownvocabulary.data.word.WordDao
 import com.example.myownvocabulary.data.word.WordEntity
@@ -19,7 +21,10 @@ data class WordsUiState(
     val isLoading: Boolean = true,
 )
 
-class VocabularyViewModel(private val dao: WordDao) : ViewModel() {
+class VocabularyViewModel(
+    private val dao: WordDao,
+    private val userPreferences: UserPreferences
+) : ViewModel() {
     val uiState: StateFlow<WordsUiState> = dao.observeAll()
         .map {
             list -> WordsUiState(
@@ -32,6 +37,25 @@ class VocabularyViewModel(private val dao: WordDao) : ViewModel() {
             started = SharingStarted.WhileSubscribed(5_000),
             initialValue = WordsUiState(isLoading = true),
         )
+
+    val recentLanguages: StateFlow<List<Language>> = userPreferences.recentLanguages
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = emptyList(),
+        )
+
+    fun rememberLanguage(language: Language) {
+        viewModelScope.launch {
+            userPreferences.rememberLanguage(language)
+        }
+    }
+
+    fun clearRecentLanguages() {
+        viewModelScope.launch {
+            userPreferences.clearRecentLanguages()
+        }
+    }
 
     fun save(term: String, translation: String, pos: PartOfSpeech, languageCode: String) {
         viewModelScope.launch {
@@ -54,11 +78,14 @@ class VocabularyViewModel(private val dao: WordDao) : ViewModel() {
     }
 }
 
-class VocabularyViewModelFactory(private val dao: WordDao) : ViewModelProvider.Factory {
+class VocabularyViewModelFactory(
+    private val dao: WordDao,
+    private val userPreferences: UserPreferences
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(VocabularyViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return VocabularyViewModel(dao) as T
+            return VocabularyViewModel(dao, userPreferences) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }

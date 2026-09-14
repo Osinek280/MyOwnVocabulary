@@ -37,12 +37,16 @@ import com.example.myownvocabulary.data.word.PartOfSpeech
 import com.example.myownvocabulary.model.Word
 import com.example.myownvocabulary.ui.components.BackButton
 import com.example.myownvocabulary.ui.components.LanguagePicker
+import com.example.myownvocabulary.ui.components.SectionLabel
 
 @Composable
 fun AddWordScreen(
     word: Word = Word(id = "", term = "", translation = "", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
     onBack: () -> Unit = {},
-    onSave: (String, String, PartOfSpeech, String) -> Unit
+    onSave: (String, String, PartOfSpeech, String) -> Unit,
+    recentLanguages: List<Language> = emptyList(),
+    onLanguageRemembered: (Language) -> Unit,
+    onClearRecent: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     val isNew = word.id.isEmpty()
@@ -100,7 +104,12 @@ fun AddWordScreen(
                 SectionLabel("Język")
                 LanguagePicker(
                     selected = language,
-                    onSelect = { language = it },
+                    recent = recentLanguages,
+                    onSelect = {
+                        language = it
+                        onLanguageRemembered(it)
+                    },
+                    onClearRecent = onClearRecent
                 )
             }
 
@@ -131,17 +140,6 @@ fun AddWordScreen(
             }
         }
     }
-}
-
-@Composable
-private fun SectionLabel(text: String) {
-    Text(
-        text.uppercase(),
-        fontSize = 12.sp,
-        fontWeight = FontWeight.SemiBold,
-        color = MaterialTheme.colorScheme.outline,
-        modifier = Modifier.padding(start = 4.dp, bottom = 8.dp),
-    )
 }
 
 @Composable

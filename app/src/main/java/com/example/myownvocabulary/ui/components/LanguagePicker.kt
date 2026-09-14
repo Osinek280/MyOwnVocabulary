@@ -40,14 +40,25 @@ import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myownvocabulary.data.word.Language
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.drawscope.Stroke
 
 @Composable
 fun LanguagePicker(
     selected: Language,
+    recent: List<Language>,
     onSelect: (Language) -> Unit,
+    onClearRecent: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -63,11 +74,10 @@ fun LanguagePicker(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(
-            selected.displayName,
-            fontSize = 16.sp,
+        LanguageLabel(
+            language = selected,
             fontWeight = FontWeight.SemiBold,
-            color = colors.onSurface,
+            modifier = Modifier.weight(1f),
         )
         Box(modifier = Modifier.rotate(90f)) {
             ChevronRight()
@@ -77,7 +87,9 @@ fun LanguagePicker(
     if (showSheet) {
         LanguagePickerSheet(
             selected = selected,
+            recent = recent,
             onSelect = onSelect,
+            onClearRecent = onClearRecent,
             onDismiss = { showSheet = false },
         )
     }
@@ -95,7 +107,9 @@ private val ConsumeSheetScroll = object : NestedScrollConnection {
 @Composable
 private fun LanguagePickerSheet(
     selected: Language,
+    recent: List<Language>,
     onSelect: (Language) -> Unit,
+    onClearRecent: () -> Unit,
     onDismiss: () -> Unit,
 ) {
     val colors = MaterialTheme.colorScheme
@@ -108,6 +122,16 @@ private fun LanguagePickerSheet(
         if (query.isBlank()) languages
         else languages.filter { it.displayName.contains(query, ignoreCase = true) }
     }
+
+    val recentVisible = remember(query, recent) {
+        if (query.isBlank()) recent
+        else recent.filter { it.displayName.contains(query, ignoreCase = true) }
+    }
+
+    val rest = remember(filtered, recentVisible) {
+        filtered.filter { option -> recentVisible.none { it.code == option.code } }
+    }
+
     val onLanguageClick = remember(onSelect, onDismiss) {
         { language: Language ->
             onSelect(language)
@@ -184,7 +208,7 @@ private fun LanguagePickerSheet(
                     .nestedScroll(ConsumeSheetScroll),
                 contentPadding = PaddingValues(bottom = 24.dp),
             ) {
-                if (filtered.isEmpty()) {
+                if (recentVisible.isEmpty() && rest.isEmpty()) {
                     item(key = "empty") {
                         Text(
                             "Brak wyników",
@@ -194,20 +218,93 @@ private fun LanguagePickerSheet(
                         )
                     }
                 } else {
-                    items(
-                        items = filtered,
-                        key = { it.code },
-                        contentType = { "language" },
-                    ) { option ->
-                        LanguageOptionRow(
-                            option = option,
-                            selected = option == selected,
-                            onSelect = onLanguageClick,
-                        )
+                    if (recentVisible.isNotEmpty()) {
+                        item(key = "recent-header") {
+                            RecentSectionHeader(onClear = onClearRecent)
+                        }
+                        items(
+                            items = recentVisible,
+                            key = { "recent-${it.code}" },
+                            contentType = { "language" },
+                        ) { option ->
+                            LanguageOptionRow(
+                                option = option,
+                                selected = option == selected,
+                                onSelect = onLanguageClick,
+                            )
+                        }
+                    }
+                    if (rest.isNotEmpty()) {
+                        if (recentVisible.isNotEmpty()) {
+                            item(key = "all-header") {
+                                SectionLabel("Wszystkie", Modifier.padding(start = 4.dp, top = 8.dp, bottom = 4.dp))
+                            }
+                        }
+                        items(
+                            items = rest,
+                            key = { it.code },
+                            contentType = { "language" },
+                        ) { option ->
+                            LanguageOptionRow(
+                                option = option,
+                                selected = option == selected,
+                                onSelect = onLanguageClick,
+                            )
+                        }
                     }
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun RecentSectionHeader(onClear: () -> Unit) {
+    val colors = MaterialTheme.colorScheme
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(start = 4.dp, top = 8.dp, bottom = 4.dp),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        SectionLabel("Ostatnio Wyszukiwane")
+        Text(
+            "Wyczyść",
+            fontSize = 12.sp,
+            fontWeight = FontWeight.Medium,
+            color = colors.primary,
+            textDecoration = TextDecoration.Underline,
+            modifier = Modifier
+                .clickable(onClick = onClear)
+                .padding(vertical = 4.dp, horizontal = 4.dp),
+        )
+    }
+}
+
+@Composable
+private fun LanguageLabel(
+    language: Language,
+    fontWeight: FontWeight,
+    modifier: Modifier = Modifier,
+) {
+    Row(
+        modifier = modifier,
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
+    ) {
+        Box(
+            modifier = Modifier.width(28.dp),
+            contentAlignment = Alignment.CenterStart,
+        ) {
+            Text(language.flagEmoji, fontSize = 18.sp)
+        }
+        Text(
+            language.displayName,
+            fontSize = 16.sp,
+            fontWeight = fontWeight,
+            color = MaterialTheme.colorScheme.onSurface,
+        )
     }
 }
 
@@ -221,22 +318,37 @@ private fun LanguageOptionRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(12.dp))
+            .background(if (selected) colors.primary.copy(alpha = 0.12f) else Color.Transparent)
             .clickable { onSelect(option) }
-            .padding(horizontal = 12.dp, vertical = 14.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
+            .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        Text(
-            option.displayName,
-            fontSize = 16.sp,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-            color = if (selected) colors.primary else colors.onSurface,
-        )
-        Text(
-            option.code.uppercase(),
-            fontSize = 12.sp,
+        LanguageLabel(
+            language = option,
             fontWeight = FontWeight.Medium,
-            color = colors.outline,
+            modifier = Modifier.weight(1f),
         )
+        if (selected) {
+            CheckIcon(color = colors.primary)
+        }
+    }
+}
+
+@Composable
+private fun CheckIcon(color: Color) {
+    Canvas(modifier = Modifier.size(18.dp)) {
+        val stroke = Stroke(
+            width = 2.dp.toPx(),
+            cap = StrokeCap.Round,
+            join = StrokeJoin.Round,
+        )
+        val path = Path().apply {
+            moveTo(3.dp.toPx(), 9.dp.toPx())
+            lineTo(7.dp.toPx(), 13.dp.toPx())
+            lineTo(15.dp.toPx(), 4.dp.toPx())
+        }
+        drawPath(path, color, style = stroke)
     }
 }

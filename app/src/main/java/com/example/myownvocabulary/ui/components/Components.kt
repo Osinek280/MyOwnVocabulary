@@ -3,10 +3,13 @@ package com.example.myownvocabulary.ui.components
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.example.myownvocabulary.data.word.PartOfSpeech
 
 @Composable
@@ -18,6 +21,20 @@ fun posColor(partOfSpeech: PartOfSpeech): Color {
         PartOfSpeech.Adjective -> colors.tertiary
         else -> colors.outline
     }
+}
+
+@Composable
+fun SectionLabel(
+    text: String,
+    modifier: Modifier = Modifier,
+) {
+    Text(
+        text.uppercase(),
+        fontSize = 12.sp,
+        fontWeight = FontWeight.SemiBold,
+        color = MaterialTheme.colorScheme.outline,
+        modifier = modifier,
+    )
 }
 
 fun PartOfSpeech.badgeLabel(): String = name.lowercase()

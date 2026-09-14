@@ -18,6 +18,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.myownvocabulary.data.AppDatabase
+import com.example.myownvocabulary.data.prefs.UserPreferences
 import com.example.myownvocabulary.ui.screens.AddWordScreen
 import com.example.myownvocabulary.ui.screens.HomeScreen
 import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModel
@@ -36,14 +37,17 @@ fun VocabularyNavHost() {
     val colors = MaterialTheme.colorScheme
 
     val context = LocalContext.current
+    val appContext = context.applicationContext
     val viewModel: VocabularyViewModel = viewModel(
         factory = remember {
             VocabularyViewModelFactory(
-                AppDatabase.getInstance(context.applicationContext).wordDao(),
+                dao = AppDatabase.getInstance(context.applicationContext).wordDao(),
+                userPreferences = UserPreferences(appContext)
             )
         },
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
+    val recentLanguages by viewModel.recentLanguages.collectAsStateWithLifecycle()
 
     Scaffold(
         containerColor = colors.background,
@@ -80,11 +84,14 @@ fun VocabularyNavHost() {
 
             composable(Routes.AddWord) {
                 AddWordScreen(
+                    recentLanguages = recentLanguages,
                     onBack = { navController.popBackStack() },
                     onSave = { term, translation, pos, languageCode ->
                         viewModel.save(term, translation, pos, languageCode)
                         navController.popBackStack()
                     },
+                    onLanguageRemembered = viewModel::rememberLanguage,
+                    onClearRecent = viewModel::clearRecentLanguages
                 )
             }
         }
