@@ -1,7 +1,6 @@
 package com.example.myownvocabulary.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -100,7 +99,7 @@ fun AddWordScreen(
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp),
         ) {
-            Column {
+            Column (verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 SectionLabel("Język")
                 LanguagePicker(
                     selected = language,
@@ -113,7 +112,7 @@ fun AddWordScreen(
                 )
             }
 
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 SectionLabel("Słówko")
                 Column(
                     modifier = Modifier
@@ -123,15 +122,16 @@ fun AddWordScreen(
                 ) {
                     Column(
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .border(width = 1.dp, color = colors.outlineVariant)
                             .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp),
                     ) {
-                        Text("Słówko", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
+                        Text("Termin", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
                         Spacer(Modifier.height(4.dp))
                         SimpleField(term, { term = it }, FontWeight.SemiBold, colors.onSurface)
                     }
-                    Column(modifier = Modifier.padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)) {
+                    Column(
+                        modifier = Modifier
+                            .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp))
+                    {
                         Text("Tłumaczenie", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
                         Spacer(Modifier.height(4.dp))
                         SimpleField(translation, { translation = it }, FontWeight.Medium, colors.onSurface)
