@@ -49,10 +49,12 @@ fun AddWordScreen(
 ) {
     val colors = MaterialTheme.colorScheme
     val isNew = word.id.isEmpty()
-    var term by remember { mutableStateOf(word.term) }
-    var translation by remember { mutableStateOf(word.translation) }
-    var pos by remember { mutableStateOf(word.partOfSpeech) }
-    var language by remember { mutableStateOf(Language.fromCode(word.languageCode)) }
+
+    var term by remember(word.id) { mutableStateOf(word.term) }
+    var translation by remember(word.id) { mutableStateOf(word.translation) }
+    var pos by remember(word.id) { mutableStateOf(word.partOfSpeech) }
+    var language by remember(word.id) { mutableStateOf(Language.fromCode(word.languageCode)) }
+
     val canSave = term.trim().isNotEmpty() && translation.trim().isNotEmpty()
 
     Column(

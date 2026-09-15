@@ -6,5 +6,8 @@ object Routes {
     const val Learn = "learn"
     const val Settings = "settings"
 
+    const val WordDetail = "word/{wordId}"
+    fun wordDetail(wordId: String) = "word/$wordId"
+
     val Tabs = setOf(Words, Learn, Settings)
 }

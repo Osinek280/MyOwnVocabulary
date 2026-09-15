@@ -1,5 +1,6 @@
 package com.example.myownvocabulary.ui.navigation
 
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -13,12 +14,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import com.example.myownvocabulary.data.AppDatabase
 import com.example.myownvocabulary.data.prefs.UserPreferences
+import com.example.myownvocabulary.ui.components.states.LoadingState
+import com.example.myownvocabulary.ui.components.states.WordNotFoundState
 import com.example.myownvocabulary.ui.screens.AddWordScreen
 import com.example.myownvocabulary.ui.screens.HomeScreen
 import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModel
@@ -72,6 +77,7 @@ fun VocabularyNavHost() {
                     words = uiState.words,
                     isLoading = uiState.isLoading,
                     onAddClick = { navController.navigate(Routes.AddWord) },
+                    onWordClick = { wordId -> navController.navigate(Routes.wordDetail(wordId)) },
                     onToggleSelect = viewModel::toggleSelection,
                     onEnterSelection = viewModel::enterSelection,
                     onClearSelection = viewModel::clearSelection,
@@ -93,12 +99,42 @@ fun VocabularyNavHost() {
                     recentLanguages = recentLanguages,
                     onBack = { navController.popBackStack() },
                     onSave = { term, translation, pos, languageCode ->
-                        viewModel.save(term, translation, pos, languageCode)
+                        viewModel.save(id=null, term, translation, pos, languageCode)
                         navController.popBackStack()
                     },
                     onLanguageRemembered = viewModel::rememberLanguage,
                     onClearRecent = viewModel::clearRecentLanguages
                 )
+            }
+
+            composable(
+                Routes.WordDetail,
+                arguments = listOf(navArgument("wordId") { type = NavType.StringType }),
+            ) { entry ->
+                val wordId = entry.arguments?.getString("wordId")
+                val word = uiState.words.find { it.id == wordId }
+
+                when {
+                    word != null -> {
+                        AddWordScreen(
+                            word = word,
+                            onSave = { term, translation, pos, languageCode ->
+                                viewModel.save(id = word.id, term, translation, pos, languageCode)
+                                navController.popBackStack()
+                            },
+                            recentLanguages = recentLanguages,
+                            onBack = { navController.popBackStack() },
+                            onLanguageRemembered = viewModel::rememberLanguage,
+                            onClearRecent = viewModel::clearRecentLanguages,
+                        )
+                    }
+                    uiState.isLoading -> {
+                        LoadingState(modifier = Modifier.fillMaxSize())
+                    }
+                    else -> {
+                        WordNotFoundState (onBack = { navController.popBackStack() })
+                    }
+                }
             }
         }
     }

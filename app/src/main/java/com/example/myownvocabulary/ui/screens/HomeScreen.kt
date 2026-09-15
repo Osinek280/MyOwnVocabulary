@@ -51,6 +51,7 @@ fun HomeScreen(
     words: List<Word>,
     isLoading: Boolean,
     onAddClick: () -> Unit = {},
+    onWordClick: (String) -> Unit = {},
     onToggleSelect: (String) -> Unit,
     onEnterSelection: (String) -> Unit,
     onClearSelection: () -> Unit,
@@ -187,6 +188,7 @@ fun HomeScreen(
                                 isSelected = word.id in selectedIds,
                                 onClick = {
                                     if (inSelection) onToggleSelect(word.id)
+                                    else onWordClick(word.id)
                                 },
                                 onLongClick = {
                                     if (inSelection) onToggleSelect(word.id)

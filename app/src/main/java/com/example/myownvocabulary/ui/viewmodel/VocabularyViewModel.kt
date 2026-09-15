@@ -88,17 +88,35 @@ class VocabularyViewModel(
         }
     }
 
-    fun save(term: String, translation: String, pos: PartOfSpeech, languageCode: String) {
+    fun save(
+        id: String?,
+        term: String,
+        translation: String,
+        pos: PartOfSpeech,
+        languageCode: String
+    ) {
         viewModelScope.launch {
-            dao.insert(
-                WordEntity(
-                    term = term.trim(),
-                    translation = translation.trim(),
-                    languageCode = languageCode,
-                    createdAt = System.currentTimeMillis(),
-                    partOfSpeech = pos,
+            if(id.isNullOrEmpty()) {
+                dao.insert(
+                    WordEntity(
+                        term = term.trim(),
+                        translation = translation.trim(),
+                        languageCode = languageCode,
+                        createdAt = System.currentTimeMillis(),
+                        partOfSpeech = pos,
+                    )
                 )
-            )
+            } else {
+                val existing = dao.getById(id) ?: return@launch
+                dao.update(
+                    existing.copy(
+                        term = term.trim(),
+                        translation = translation.trim(),
+                        languageCode = languageCode,
+                        partOfSpeech = pos
+                    )
+                )
+            }
         }
     }
 }
