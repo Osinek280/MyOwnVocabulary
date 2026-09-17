@@ -49,7 +49,7 @@ fun VocabularyNavHost() {
                 dao = AppDatabase.getInstance(context.applicationContext).wordDao(),
                 userPreferences = UserPreferences(appContext)
             )
-        },
+        }
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val recentLanguages by viewModel.recentLanguages.collectAsStateWithLifecycle()
@@ -60,47 +60,47 @@ fun VocabularyNavHost() {
         bottomBar = {
             if (currentRoute in Routes.Tabs) {
                 BottomNav(
-                    currentRoute = currentRoute ?: Routes.Words,
-                    onNavigate =  onTabSelected,
+                    currentRoute = currentRoute ?: Routes.WORDS,
+                    onNavigate = onTabSelected
                 )
             }
         }
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Routes.Words,
-            modifier = Modifier.padding(innerPadding),
+            startDestination = Routes.WORDS,
+            modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Routes.Words) {
+            composable(Routes.WORDS) {
                 val selectedIds by viewModel.selectedIds.collectAsStateWithLifecycle()
                 HomeScreen(
                     words = uiState.words,
                     isLoading = uiState.isLoading,
-                    onAddClick = { navController.navigate(Routes.AddWord) },
+                    onAddClick = { navController.navigate(Routes.ADD_WORD) },
                     onWordClick = { wordId -> navController.navigate(Routes.wordDetail(wordId)) },
                     onToggleSelect = viewModel::toggleSelection,
                     onEnterSelection = viewModel::enterSelection,
                     onClearSelection = viewModel::clearSelection,
                     onDeleteSelected = viewModel::deleteSelected,
-                    selectedIds = selectedIds,
+                    selectedIds = selectedIds
                 )
             }
 
-            composable(Routes.Learn) {
+            composable(Routes.LEARN) {
                 Text("Learn Page")
             }
 
-            composable(Routes.Settings) {
+            composable(Routes.SETTINGS) {
                 Text("Settings Page")
             }
 
-            composable(Routes.AddWord) {
+            composable(Routes.ADD_WORD) {
                 WordDetailScreen(
                     words = uiState.words,
                     recentLanguages = recentLanguages,
                     onBack = { navController.popBackStack() },
                     onSave = { term, translation, pos, languageCode ->
-                        viewModel.save(id=null, term, translation, pos, languageCode)
+                        viewModel.save(id = null, term, translation, pos, languageCode)
                         navController.popBackStack()
                     },
                     onLanguageRemembered = viewModel::rememberLanguage,
@@ -109,8 +109,8 @@ fun VocabularyNavHost() {
             }
 
             composable(
-                Routes.WordDetail,
-                arguments = listOf(navArgument("wordId") { type = NavType.StringType }),
+                Routes.WORD_DETAIL,
+                arguments = listOf(navArgument("wordId") { type = NavType.StringType })
             ) { entry ->
                 val wordId = entry.arguments?.getString("wordId")
                 val word = uiState.words.find { it.id == wordId }
@@ -127,14 +127,14 @@ fun VocabularyNavHost() {
                             recentLanguages = recentLanguages,
                             onBack = { navController.popBackStack() },
                             onLanguageRemembered = viewModel::rememberLanguage,
-                            onClearRecent = viewModel::clearRecentLanguages,
+                            onClearRecent = viewModel::clearRecentLanguages
                         )
                     }
                     uiState.isLoading -> {
                         LoadingState(modifier = Modifier.fillMaxSize())
                     }
                     else -> {
-                        WordNotFoundState (onBack = { navController.popBackStack() })
+                        WordNotFoundState(onBack = { navController.popBackStack() })
                     }
                 }
             }

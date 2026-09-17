@@ -5,5 +5,5 @@ enum class PartOfSpeech {
     Verb,
     Adjective,
     Adverb,
-    Other,
+    Other
 }

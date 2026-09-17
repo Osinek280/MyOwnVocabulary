@@ -1,13 +1,13 @@
 package com.example.myownvocabulary.ui.navigation
 
 object Routes {
-    const val Words = "words"
-    const val AddWord = "add_word"
-    const val Learn = "learn"
-    const val Settings = "settings"
+    const val WORDS = "words"
+    const val ADD_WORD = "add_word"
+    const val LEARN = "learn"
+    const val SETTINGS = "settings"
 
-    const val WordDetail = "word/{wordId}"
+    const val WORD_DETAIL = "word/{wordId}"
     fun wordDetail(wordId: String) = "word/$wordId"
 
-    val Tabs = setOf(Words, Learn, Settings)
+    val Tabs = setOf(WORDS, LEARN, SETTINGS)
 }

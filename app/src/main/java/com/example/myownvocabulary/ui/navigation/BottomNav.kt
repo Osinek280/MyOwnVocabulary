@@ -25,7 +25,7 @@ import com.example.myownvocabulary.ui.components.ListIcon
 import com.example.myownvocabulary.ui.components.SettingsIcon
 
 @Composable
-fun BottomNav(currentRoute: String,  onNavigate: (String) -> Unit,) {
+fun BottomNav(currentRoute: String, onNavigate: (String) -> Unit) {
     val colors = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
@@ -35,29 +35,24 @@ fun BottomNav(currentRoute: String,  onNavigate: (String) -> Unit,) {
     ) {
         NavItem(
             label = "Lista",
-            selected = currentRoute == Routes.Words,
-            onClick = { onNavigate(Routes.Words) },
+            selected = currentRoute == Routes.WORDS,
+            onClick = { onNavigate(Routes.WORDS) }
         ) { color -> ListIcon(color) }
         NavItem(
             label = "Nauka",
-            selected = currentRoute == Routes.Learn,
-            onClick = { onNavigate(Routes.Learn) },
+            selected = currentRoute == Routes.LEARN,
+            onClick = { onNavigate(Routes.LEARN) }
         ) { color -> LearnIcon(color) }
         NavItem(
             label = "Opcje",
-            selected = currentRoute == Routes.Settings,
-            onClick = { onNavigate(Routes.Settings) },
+            selected = currentRoute == Routes.SETTINGS,
+            onClick = { onNavigate(Routes.SETTINGS) }
         ) { color -> SettingsIcon(color) }
     }
 }
 
 @Composable
-private fun RowScope.NavItem(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-    icon: @Composable (Color) -> Unit,
-) {
+private fun RowScope.NavItem(label: String, selected: Boolean, onClick: () -> Unit, icon: @Composable (Color) -> Unit) {
     val colors = MaterialTheme.colorScheme
     val color = if (selected) colors.primary else colors.outline
     Column(
@@ -66,7 +61,7 @@ private fun RowScope.NavItem(
             .clickable(onClick = onClick)
             .padding(vertical = 12.dp),
         horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         icon(color)
         Text(label, color = color, fontSize = 12.sp, fontWeight = FontWeight.Medium)

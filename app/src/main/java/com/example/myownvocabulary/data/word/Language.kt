@@ -1,10 +1,6 @@
 package com.example.myownvocabulary.data.word
 
-enum class Language(
-    val code: String,
-    val displayName: String,
-    val flagEmoji: String
-) {
+enum class Language(val code: String, val displayName: String, val flagEmoji: String) {
     English("en", "Angielski", "🇬🇧"),
     German("de", "Niemiecki", "🇩🇪"),
     Spanish("es", "Hiszpański", "🇪🇸"),
@@ -42,7 +38,6 @@ enum class Language(
     Latin("la", "Łacina", "🏛");
 
     companion object {
-        fun fromCode(code: String): Language =
-            entries.find { it.code.equals(code, ignoreCase = true) } ?: English
+        fun fromCode(code: String): Language = entries.find { it.code.equals(code, ignoreCase = true) } ?: English
     }
 }

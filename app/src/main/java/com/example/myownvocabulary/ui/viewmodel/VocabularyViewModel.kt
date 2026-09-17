@@ -19,18 +19,12 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class WordsUiState(
-    val words: List<Word> = emptyList(),
-    val isLoading: Boolean = true,
-)
+data class WordsUiState(val words: List<Word> = emptyList(), val isLoading: Boolean = true)
 
-class VocabularyViewModel(
-    private val dao: WordDao,
-    private val userPreferences: UserPreferences
-) : ViewModel() {
+class VocabularyViewModel(private val dao: WordDao, private val userPreferences: UserPreferences) : ViewModel() {
     val uiState: StateFlow<WordsUiState> = dao.observeAll()
-        .map {
-            list -> WordsUiState(
+        .map { list ->
+            WordsUiState(
                 words = list.map { it.toWord() },
                 isLoading = false
             )
@@ -38,7 +32,7 @@ class VocabularyViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = WordsUiState(isLoading = true),
+            initialValue = WordsUiState(isLoading = true)
         )
 
     private val _selectedIds = MutableStateFlow<Set<String>>(emptySet())
@@ -73,7 +67,7 @@ class VocabularyViewModel(
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = emptyList(),
+            initialValue = emptyList()
         )
 
     fun rememberLanguage(language: Language) {
@@ -88,22 +82,16 @@ class VocabularyViewModel(
         }
     }
 
-    fun save(
-        id: String?,
-        term: String,
-        translation: String,
-        pos: PartOfSpeech,
-        languageCode: String
-    ) {
+    fun save(id: String?, term: String, translation: String, pos: PartOfSpeech, languageCode: String) {
         viewModelScope.launch {
-            if(id.isNullOrEmpty()) {
+            if (id.isNullOrEmpty()) {
                 dao.insert(
                     WordEntity(
                         term = term.trim(),
                         translation = translation.trim(),
                         languageCode = languageCode,
                         createdAt = System.currentTimeMillis(),
-                        partOfSpeech = pos,
+                        partOfSpeech = pos
                     )
                 )
             } else {
@@ -121,10 +109,8 @@ class VocabularyViewModel(
     }
 }
 
-class VocabularyViewModelFactory(
-    private val dao: WordDao,
-    private val userPreferences: UserPreferences
-) : ViewModelProvider.Factory {
+class VocabularyViewModelFactory(private val dao: WordDao, private val userPreferences: UserPreferences) :
+    ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(VocabularyViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")

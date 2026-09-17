@@ -10,7 +10,7 @@ import com.example.myownvocabulary.data.word.Language
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 
-private const val MaxRecentLanguages = 5
+private const val MAX_RECENT_LANGUAGES = 5
 
 val Context.userPrefs: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
 
@@ -37,14 +37,13 @@ class UserPreferences(private val context: Context) {
         context.userPrefs.edit { prefs ->
             val current = parseLanguageCodes(prefs[UserPrefsKeys.RecentLanguageCodes])
             val updated = (listOf(language.code) + current.filter { it != language.code })
-                .take(MaxRecentLanguages)
+                .take(MAX_RECENT_LANGUAGES)
             prefs[UserPrefsKeys.RecentLanguageCodes] = updated.joinToString(",")
         }
     }
 }
 
-private fun parseLanguageCodes(raw: String?): List<String> =
-    raw.orEmpty()
-        .split(",")
-        .map { it.trim() }
-        .filter { it.isNotEmpty() }
+private fun parseLanguageCodes(raw: String?): List<String> = raw.orEmpty()
+    .split(",")
+    .map { it.trim() }
+    .filter { it.isNotEmpty() }

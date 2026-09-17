@@ -28,19 +28,19 @@ fun EmptyVocabularyState(onAddClick: () -> Unit) {
             .fillMaxSize()
             .padding(horizontal = 32.dp),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             "Brak słówek",
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
-            color = colors.onBackground,
+            color = colors.onBackground
         )
         Spacer(Modifier.height(8.dp))
         Text(
             "Dodaj pierwsze słówko, żeby zacząć naukę.",
             fontSize = 14.sp,
-            color = colors.outline,
+            color = colors.outline
         )
         Spacer(Modifier.height(20.dp))
         Button(onClick = onAddClick) {
@@ -57,19 +57,19 @@ fun EmptySearchState(query: String) {
             .fillMaxSize()
             .padding(horizontal = 32.dp),
         verticalArrangement = Arrangement.Center,
-        horizontalAlignment = Alignment.CenterHorizontally,
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
             "Nic nie znaleziono",
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
-            color = colors.onBackground,
+            color = colors.onBackground
         )
         Spacer(Modifier.height(8.dp))
         Text(
             "Brak wyników dla „$query”.",
             fontSize = 14.sp,
-            color = colors.outline,
+            color = colors.outline
         )
     }
 }
@@ -80,7 +80,7 @@ fun WordNotFoundState(onBack: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
             modifier = Modifier.padding(horizontal = 20.dp, vertical = 16.dp),
-            verticalAlignment = Alignment.CenterVertically,
+            verticalAlignment = Alignment.CenterVertically
         ) {
             BackButton(onPress = onBack)
         }
@@ -89,13 +89,13 @@ fun WordNotFoundState(onBack: () -> Unit) {
                 .weight(1f)
                 .padding(horizontal = 32.dp),
             verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally,
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
                 "Nie znaleziono słówka",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
-                color = colors.onBackground,
+                color = colors.onBackground
             )
             Spacer(Modifier.height(8.dp))
             Text(

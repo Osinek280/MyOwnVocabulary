@@ -21,17 +21,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
 @Composable
-fun SearchBar(
-    value: String,
-    onValueChange: (String) -> Unit,
-    placeholder: String,
-    modifier: Modifier = Modifier,
-) {
+fun SearchBar(value: String, onValueChange: (String) -> Unit, placeholder: String, modifier: Modifier = Modifier) {
     val colors = MaterialTheme.colorScheme
     val searchStyle = TextStyle(
         fontSize = 14.sp,
         lineHeight = 20.sp,
-        color = colors.onSurface,
+        color = colors.onSurface
     )
     Row(
         modifier = modifier
@@ -41,7 +36,7 @@ fun SearchBar(
             .background(colors.surfaceVariant)
             .padding(horizontal = 14.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         SearchIcon()
         BasicTextField(
@@ -54,18 +49,18 @@ fun SearchBar(
             decorationBox = { inner ->
                 Box(
                     modifier = Modifier.fillMaxWidth(),
-                    contentAlignment = Alignment.CenterStart,
+                    contentAlignment = Alignment.CenterStart
                 ) {
                     if (value.isEmpty()) {
                         Text(
                             text = placeholder,
                             style = searchStyle.copy(color = colors.outline),
-                            maxLines = 1,
+                            maxLines = 1
                         )
                     }
                     inner()
                 }
-            },
+            }
         )
     }
 }

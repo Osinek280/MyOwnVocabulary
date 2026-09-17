@@ -24,35 +24,29 @@ fun posColor(partOfSpeech: PartOfSpeech): Color {
 }
 
 @Composable
-fun SectionLabel(
-    text: String,
-    modifier: Modifier = Modifier,
-) {
+fun SectionLabel(text: String, modifier: Modifier = Modifier) {
     Text(
         text.uppercase(),
         fontSize = 12.sp,
         fontWeight = FontWeight.SemiBold,
         color = MaterialTheme.colorScheme.outline,
-        modifier = modifier,
+        modifier = modifier
     )
 }
 
 fun PartOfSpeech.badgeLabel(): String = name.lowercase()
 
 @Composable
-fun BackButton(
-    onPress: () -> Unit,
-    color: Color = MaterialTheme.colorScheme.onBackground,
-) {
+fun BackButton(onPress: () -> Unit, color: Color = MaterialTheme.colorScheme.onBackground) {
     androidx.compose.foundation.Canvas(
         modifier = Modifier
             .size(24.dp)
-            .clickable(onClick = onPress),
+            .clickable(onClick = onPress)
     ) {
         val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
             width = 2.dp.toPx(),
             cap = androidx.compose.ui.graphics.StrokeCap.Round,
-            join = androidx.compose.ui.graphics.StrokeJoin.Round,
+            join = androidx.compose.ui.graphics.StrokeJoin.Round
         )
         val path = androidx.compose.ui.graphics.Path().apply {
             moveTo(14.dp.toPx(), 5.dp.toPx())
@@ -66,7 +60,11 @@ fun BackButton(
 @Composable
 fun ChevronRight(color: Color = MaterialTheme.colorScheme.outlineVariant) {
     androidx.compose.foundation.Canvas(modifier = Modifier.size(14.dp)) {
-        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.5.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round, join = androidx.compose.ui.graphics.StrokeJoin.Round)
+        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
+            width = 1.5.dp.toPx(),
+            cap = androidx.compose.ui.graphics.StrokeCap.Round,
+            join = androidx.compose.ui.graphics.StrokeJoin.Round
+        )
         val path = androidx.compose.ui.graphics.Path().apply {
             moveTo(5.dp.toPx(), 3.dp.toPx())
             lineTo(9.dp.toPx(), 7.dp.toPx())
@@ -81,9 +79,30 @@ fun PlusIcon(color: Color = MaterialTheme.colorScheme.onPrimary, iconSize: Int =
     androidx.compose.foundation.Canvas(modifier = Modifier.size(iconSize.dp)) {
         val mid = this.size.width / 2f
         val pad = 3.dp.toPx()
-        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = 2.2.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
-        drawLine(color, androidx.compose.ui.geometry.Offset(mid, pad), androidx.compose.ui.geometry.Offset(mid, this.size.height - pad), stroke.width, androidx.compose.ui.graphics.StrokeCap.Round)
-        drawLine(color, androidx.compose.ui.geometry.Offset(pad, mid), androidx.compose.ui.geometry.Offset(this.size.width - pad, mid), stroke.width, androidx.compose.ui.graphics.StrokeCap.Round)
+        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
+            width = 2.2.dp.toPx(),
+            cap = androidx.compose.ui.graphics.StrokeCap.Round
+        )
+        drawLine(
+            color,
+            androidx.compose.ui.geometry.Offset(mid, pad),
+            androidx.compose.ui.geometry.Offset(
+                mid,
+                this.size.height - pad
+            ),
+            stroke.width,
+            androidx.compose.ui.graphics.StrokeCap.Round
+        )
+        drawLine(
+            color,
+            androidx.compose.ui.geometry.Offset(pad, mid),
+            androidx.compose.ui.geometry.Offset(
+                this.size.width - pad,
+                mid
+            ),
+            stroke.width,
+            androidx.compose.ui.graphics.StrokeCap.Round
+        )
     }
 }
 
@@ -93,7 +112,7 @@ fun CheckIcon(color: Color = MaterialTheme.colorScheme.primary) {
         val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
             width = 2.dp.toPx(),
             cap = androidx.compose.ui.graphics.StrokeCap.Round,
-            join = androidx.compose.ui.graphics.StrokeJoin.Round,
+            join = androidx.compose.ui.graphics.StrokeJoin.Round
         )
         val path = androidx.compose.ui.graphics.Path().apply {
             moveTo(3.dp.toPx(), 9.dp.toPx())
@@ -127,14 +146,28 @@ fun SearchIcon(color: Color = MaterialTheme.colorScheme.outline) {
     }
 }
 
-
 @Composable
 fun ListIcon(color: Color) {
     androidx.compose.foundation.Canvas(modifier = Modifier.size(22.dp)) {
         val r = 1.dp.toPx()
-        drawRoundRect(color, androidx.compose.ui.geometry.Offset(3.dp.toPx(), 4.dp.toPx()), androidx.compose.ui.geometry.Size(7.dp.toPx(), 2.dp.toPx()), androidx.compose.ui.geometry.CornerRadius(r))
-        drawRoundRect(color, androidx.compose.ui.geometry.Offset(3.dp.toPx(), 10.dp.toPx()), androidx.compose.ui.geometry.Size(16.dp.toPx(), 2.dp.toPx()), androidx.compose.ui.geometry.CornerRadius(r))
-        drawRoundRect(color, androidx.compose.ui.geometry.Offset(3.dp.toPx(), 16.dp.toPx()), androidx.compose.ui.geometry.Size(12.dp.toPx(), 2.dp.toPx()), androidx.compose.ui.geometry.CornerRadius(r))
+        drawRoundRect(
+            color,
+            androidx.compose.ui.geometry.Offset(3.dp.toPx(), 4.dp.toPx()),
+            androidx.compose.ui.geometry.Size(7.dp.toPx(), 2.dp.toPx()),
+            androidx.compose.ui.geometry.CornerRadius(r)
+        )
+        drawRoundRect(
+            color,
+            androidx.compose.ui.geometry.Offset(3.dp.toPx(), 10.dp.toPx()),
+            androidx.compose.ui.geometry.Size(16.dp.toPx(), 2.dp.toPx()),
+            androidx.compose.ui.geometry.CornerRadius(r)
+        )
+        drawRoundRect(
+            color,
+            androidx.compose.ui.geometry.Offset(3.dp.toPx(), 16.dp.toPx()),
+            androidx.compose.ui.geometry.Size(12.dp.toPx(), 2.dp.toPx()),
+            androidx.compose.ui.geometry.CornerRadius(r)
+        )
     }
 }
 
@@ -144,7 +177,7 @@ fun LearnIcon(color: Color) {
         val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
             width = 1.8.dp.toPx(),
             cap = androidx.compose.ui.graphics.StrokeCap.Round,
-            join = androidx.compose.ui.graphics.StrokeJoin.Round,
+            join = androidx.compose.ui.graphics.StrokeJoin.Round
         )
         val p1 = androidx.compose.ui.graphics.Path().apply {
             moveTo(11.dp.toPx(), 3.dp.toPx())
@@ -172,15 +205,71 @@ fun LearnIcon(color: Color) {
 @Composable
 fun SettingsIcon(color: Color) {
     androidx.compose.foundation.Canvas(modifier = Modifier.size(22.dp)) {
-        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(width = 1.8.dp.toPx(), cap = androidx.compose.ui.graphics.StrokeCap.Round)
-        drawCircle(color, radius = 3.dp.toPx(), center = androidx.compose.ui.geometry.Offset(11.dp.toPx(), 11.dp.toPx()), style = stroke)
-        drawLine(color, androidx.compose.ui.geometry.Offset(11.dp.toPx(), 2.dp.toPx()), androidx.compose.ui.geometry.Offset(11.dp.toPx(), 4.dp.toPx()), stroke.width, androidx.compose.ui.graphics.StrokeCap.Round)
-        drawLine(color, androidx.compose.ui.geometry.Offset(11.dp.toPx(), 18.dp.toPx()), androidx.compose.ui.geometry.Offset(11.dp.toPx(), 20.dp.toPx()), stroke.width, androidx.compose.ui.graphics.StrokeCap.Round)
-        drawLine(color, androidx.compose.ui.geometry.Offset(2.dp.toPx(), 11.dp.toPx()), androidx.compose.ui.geometry.Offset(4.dp.toPx(), 11.dp.toPx()), stroke.width, androidx.compose.ui.graphics.StrokeCap.Round)
-        drawLine(color, androidx.compose.ui.geometry.Offset(18.dp.toPx(), 11.dp.toPx()), androidx.compose.ui.geometry.Offset(20.dp.toPx(), 11.dp.toPx()), stroke.width, androidx.compose.ui.graphics.StrokeCap.Round)
-        drawLine(color, androidx.compose.ui.geometry.Offset(4.22.dp.toPx(), 4.22.dp.toPx()), androidx.compose.ui.geometry.Offset(5.64.dp.toPx(), 5.64.dp.toPx()), stroke.width, androidx.compose.ui.graphics.StrokeCap.Round)
-        drawLine(color, androidx.compose.ui.geometry.Offset(16.36.dp.toPx(), 16.36.dp.toPx()), androidx.compose.ui.geometry.Offset(17.78.dp.toPx(), 17.78.dp.toPx()), stroke.width, androidx.compose.ui.graphics.StrokeCap.Round)
-        drawLine(color, androidx.compose.ui.geometry.Offset(4.22.dp.toPx(), 17.78.dp.toPx()), androidx.compose.ui.geometry.Offset(5.64.dp.toPx(), 16.36.dp.toPx()), stroke.width, androidx.compose.ui.graphics.StrokeCap.Round)
-        drawLine(color, androidx.compose.ui.geometry.Offset(16.36.dp.toPx(), 5.64.dp.toPx()), androidx.compose.ui.geometry.Offset(17.78.dp.toPx(), 4.22.dp.toPx()), stroke.width, androidx.compose.ui.graphics.StrokeCap.Round)
+        val stroke = androidx.compose.ui.graphics.drawscope.Stroke(
+            width = 1.8.dp.toPx(),
+            cap = androidx.compose.ui.graphics.StrokeCap.Round
+        )
+        drawCircle(
+            color,
+            radius = 3.dp.toPx(),
+            center = androidx.compose.ui.geometry.Offset(11.dp.toPx(), 11.dp.toPx()),
+            style = stroke
+        )
+        drawLine(
+            color,
+            androidx.compose.ui.geometry.Offset(11.dp.toPx(), 2.dp.toPx()),
+            androidx.compose.ui.geometry.Offset(11.dp.toPx(), 4.dp.toPx()),
+            stroke.width,
+            androidx.compose.ui.graphics.StrokeCap.Round
+        )
+        drawLine(
+            color,
+            androidx.compose.ui.geometry.Offset(11.dp.toPx(), 18.dp.toPx()),
+            androidx.compose.ui.geometry.Offset(11.dp.toPx(), 20.dp.toPx()),
+            stroke.width,
+            androidx.compose.ui.graphics.StrokeCap.Round
+        )
+        drawLine(
+            color,
+            androidx.compose.ui.geometry.Offset(2.dp.toPx(), 11.dp.toPx()),
+            androidx.compose.ui.geometry.Offset(4.dp.toPx(), 11.dp.toPx()),
+            stroke.width,
+            androidx.compose.ui.graphics.StrokeCap.Round
+        )
+        drawLine(
+            color,
+            androidx.compose.ui.geometry.Offset(18.dp.toPx(), 11.dp.toPx()),
+            androidx.compose.ui.geometry.Offset(20.dp.toPx(), 11.dp.toPx()),
+            stroke.width,
+            androidx.compose.ui.graphics.StrokeCap.Round
+        )
+        drawLine(
+            color,
+            androidx.compose.ui.geometry.Offset(4.22.dp.toPx(), 4.22.dp.toPx()),
+            androidx.compose.ui.geometry.Offset(5.64.dp.toPx(), 5.64.dp.toPx()),
+            stroke.width,
+            androidx.compose.ui.graphics.StrokeCap.Round
+        )
+        drawLine(
+            color,
+            androidx.compose.ui.geometry.Offset(16.36.dp.toPx(), 16.36.dp.toPx()),
+            androidx.compose.ui.geometry.Offset(17.78.dp.toPx(), 17.78.dp.toPx()),
+            stroke.width,
+            androidx.compose.ui.graphics.StrokeCap.Round
+        )
+        drawLine(
+            color,
+            androidx.compose.ui.geometry.Offset(4.22.dp.toPx(), 17.78.dp.toPx()),
+            androidx.compose.ui.geometry.Offset(5.64.dp.toPx(), 16.36.dp.toPx()),
+            stroke.width,
+            androidx.compose.ui.graphics.StrokeCap.Round
+        )
+        drawLine(
+            color,
+            androidx.compose.ui.geometry.Offset(16.36.dp.toPx(), 5.64.dp.toPx()),
+            androidx.compose.ui.geometry.Offset(17.78.dp.toPx(), 4.22.dp.toPx()),
+            stroke.width,
+            androidx.compose.ui.graphics.StrokeCap.Round
+        )
     }
 }

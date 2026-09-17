@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -32,6 +33,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
 import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.input.nestedscroll.nestedScroll
@@ -41,8 +43,6 @@ import androidx.compose.ui.text.style.TextDecoration
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myownvocabulary.data.word.Language
-import androidx.compose.foundation.layout.width
-import androidx.compose.ui.graphics.Color
 
 @Composable
 fun LanguagePicker(
@@ -50,7 +50,7 @@ fun LanguagePicker(
     recent: List<Language>,
     onSelect: (Language) -> Unit,
     onClearRecent: () -> Unit,
-    modifier: Modifier = Modifier,
+    modifier: Modifier = Modifier
 ) {
     val colors = MaterialTheme.colorScheme
     var showSheet by remember { mutableStateOf(false) }
@@ -63,12 +63,12 @@ fun LanguagePicker(
             .clickable { showSheet = true }
             .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         LanguageLabel(
             language = selected,
             fontWeight = FontWeight.SemiBold,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
         )
         Box(modifier = Modifier.rotate(90f)) {
             ChevronRight()
@@ -81,17 +81,14 @@ fun LanguagePicker(
             recent = recent,
             onSelect = onSelect,
             onClearRecent = onClearRecent,
-            onDismiss = { showSheet = false },
+            onDismiss = { showSheet = false }
         )
     }
 }
 
 private val ConsumeSheetScroll = object : NestedScrollConnection {
-    override fun onPostScroll(
-        consumed: Offset,
-        available: Offset,
-        source: NestedScrollSource,
-    ): Offset = Offset(x = 0f, y = available.y)
+    override fun onPostScroll(consumed: Offset, available: Offset, source: NestedScrollSource): Offset =
+        Offset(x = 0f, y = available.y)
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -101,7 +98,7 @@ private fun LanguagePickerSheet(
     recent: List<Language>,
     onSelect: (Language) -> Unit,
     onClearRecent: () -> Unit,
-    onDismiss: () -> Unit,
+    onDismiss: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     val sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
@@ -110,13 +107,19 @@ private fun LanguagePickerSheet(
     val languages = remember { Language.entries.sortedBy { it.displayName } }
     var query by remember { mutableStateOf("") }
     val filtered = remember(query, languages) {
-        if (query.isBlank()) languages
-        else languages.filter { it.displayName.contains(query, ignoreCase = true) }
+        if (query.isBlank()) {
+            languages
+        } else {
+            languages.filter { it.displayName.contains(query, ignoreCase = true) }
+        }
     }
 
     val recentVisible = remember(query, recent) {
-        if (query.isBlank()) recent
-        else recent.filter { it.displayName.contains(query, ignoreCase = true) }
+        if (query.isBlank()) {
+            recent
+        } else {
+            recent.filter { it.displayName.contains(query, ignoreCase = true) }
+        }
     }
 
     val rest = remember(filtered, recentVisible) {
@@ -133,7 +136,7 @@ private fun LanguagePickerSheet(
     ModalBottomSheet(
         onDismissRequest = onDismiss,
         sheetState = sheetState,
-        containerColor = colors.background,
+        containerColor = colors.background
     ) {
         Column(
             modifier = Modifier
@@ -141,14 +144,14 @@ private fun LanguagePickerSheet(
                 .height(sheetHeight)
                 .imePadding()
                 .navigationBarsPadding()
-                .padding(horizontal = 20.dp),
+                .padding(horizontal = 20.dp)
         ) {
             Text(
                 "Wybierz język",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = colors.onBackground,
-                modifier = Modifier.padding(bottom = 14.dp),
+                modifier = Modifier.padding(bottom = 14.dp)
             )
             SearchBar(
                 value = query,
@@ -162,7 +165,7 @@ private fun LanguagePickerSheet(
                     .fillMaxWidth()
                     .weight(1f)
                     .nestedScroll(ConsumeSheetScroll),
-                contentPadding = PaddingValues(bottom = 24.dp),
+                contentPadding = PaddingValues(bottom = 24.dp)
             ) {
                 if (recentVisible.isEmpty() && rest.isEmpty()) {
                     item(key = "empty") {
@@ -170,7 +173,7 @@ private fun LanguagePickerSheet(
                             "Brak wyników",
                             fontSize = 14.sp,
                             color = colors.outline,
-                            modifier = Modifier.padding(vertical = 20.dp),
+                            modifier = Modifier.padding(vertical = 20.dp)
                         )
                     }
                 } else {
@@ -181,12 +184,12 @@ private fun LanguagePickerSheet(
                         items(
                             items = recentVisible,
                             key = { "recent-${it.code}" },
-                            contentType = { "language" },
+                            contentType = { "language" }
                         ) { option ->
                             LanguageOptionRow(
                                 option = option,
                                 selected = option == selected,
-                                onSelect = onLanguageClick,
+                                onSelect = onLanguageClick
                             )
                         }
                     }
@@ -199,12 +202,12 @@ private fun LanguagePickerSheet(
                         items(
                             items = rest,
                             key = { it.code },
-                            contentType = { "language" },
+                            contentType = { "language" }
                         ) { option ->
                             LanguageOptionRow(
                                 option = option,
                                 selected = option == selected,
-                                onSelect = onLanguageClick,
+                                onSelect = onLanguageClick
                             )
                         }
                     }
@@ -222,7 +225,7 @@ private fun RecentSectionHeader(onClear: () -> Unit) {
             .fillMaxWidth()
             .padding(start = 4.dp, top = 8.dp, bottom = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically,
+        verticalAlignment = Alignment.CenterVertically
     ) {
         SectionLabel("Ostatnio Wyszukiwane")
         Text(
@@ -233,25 +236,21 @@ private fun RecentSectionHeader(onClear: () -> Unit) {
             textDecoration = TextDecoration.Underline,
             modifier = Modifier
                 .clickable(onClick = onClear)
-                .padding(vertical = 4.dp, horizontal = 4.dp),
+                .padding(vertical = 4.dp, horizontal = 4.dp)
         )
     }
 }
 
 @Composable
-private fun LanguageLabel(
-    language: Language,
-    fontWeight: FontWeight,
-    modifier: Modifier = Modifier,
-) {
+private fun LanguageLabel(language: Language, fontWeight: FontWeight, modifier: Modifier = Modifier) {
     Row(
         modifier = modifier,
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         Box(
             modifier = Modifier.width(28.dp),
-            contentAlignment = Alignment.CenterStart,
+            contentAlignment = Alignment.CenterStart
         ) {
             Text(language.flagEmoji, fontSize = 18.sp)
         }
@@ -259,17 +258,13 @@ private fun LanguageLabel(
             language.displayName,
             fontSize = 16.sp,
             fontWeight = fontWeight,
-            color = MaterialTheme.colorScheme.onSurface,
+            color = MaterialTheme.colorScheme.onSurface
         )
     }
 }
 
 @Composable
-private fun LanguageOptionRow(
-    option: Language,
-    selected: Boolean,
-    onSelect: (Language) -> Unit,
-) {
+private fun LanguageOptionRow(option: Language, selected: Boolean, onSelect: (Language) -> Unit) {
     val colors = MaterialTheme.colorScheme
     Row(
         modifier = Modifier
@@ -279,12 +274,12 @@ private fun LanguageOptionRow(
             .clickable { onSelect(option) }
             .padding(horizontal = 12.dp, vertical = 10.dp),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(12.dp),
+        horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         LanguageLabel(
             language = option,
             fontWeight = FontWeight.Medium,
-            modifier = Modifier.weight(1f),
+            modifier = Modifier.weight(1f)
         )
         if (selected) {
             CheckIcon(color = colors.primary)

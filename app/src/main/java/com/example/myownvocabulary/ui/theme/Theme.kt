@@ -47,7 +47,7 @@ private fun lightScheme(): ColorScheme = lightColorScheme(
     surfaceContainerLow = LightPalette.surfaceContainerLow,
     surfaceContainer = LightPalette.surfaceContainer,
     surfaceContainerHigh = LightPalette.surfaceContainerHigh,
-    surfaceContainerHighest = LightPalette.surfaceContainerHighest,
+    surfaceContainerHighest = LightPalette.surfaceContainerHighest
 )
 
 private fun darkScheme(): ColorScheme = darkColorScheme(
@@ -86,14 +86,11 @@ private fun darkScheme(): ColorScheme = darkColorScheme(
     surfaceContainerLow = DarkPalette.surfaceContainerLow,
     surfaceContainer = DarkPalette.surfaceContainer,
     surfaceContainerHigh = DarkPalette.surfaceContainerHigh,
-    surfaceContainerHighest = DarkPalette.surfaceContainerHighest,
+    surfaceContainerHighest = DarkPalette.surfaceContainerHighest
 )
 
 @Composable
-fun MyOwnVocabularyTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    content: @Composable () -> Unit,
-) {
+fun MyOwnVocabularyTheme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
     val colorScheme = if (darkTheme) darkScheme() else lightScheme()
 
     val view = LocalView.current
@@ -110,6 +107,6 @@ fun MyOwnVocabularyTheme(
     MaterialTheme(
         colorScheme = colorScheme,
         typography = Typography,
-        content = content,
+        content = content
     )
 }

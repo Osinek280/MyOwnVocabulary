@@ -8,7 +8,7 @@ data class Word(
     val term: String,
     val translation: String,
     val languageCode: String,
-    val partOfSpeech: PartOfSpeech,
+    val partOfSpeech: PartOfSpeech
 )
 
 fun WordEntity.toWord() = Word(
@@ -16,5 +16,5 @@ fun WordEntity.toWord() = Word(
     term = term,
     translation = translation,
     languageCode = languageCode,
-    partOfSpeech = partOfSpeech,
+    partOfSpeech = partOfSpeech
 )
