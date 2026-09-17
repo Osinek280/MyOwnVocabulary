@@ -39,8 +39,9 @@ import com.example.myownvocabulary.ui.components.LanguagePicker
 import com.example.myownvocabulary.ui.components.SectionLabel
 
 @Composable
-fun AddWordScreen(
+fun WordDetailScreen(
     word: Word = Word(id = "", term = "", translation = "", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
+    words: List<Word>,
     onBack: () -> Unit = {},
     onSave: (String, String, PartOfSpeech, String) -> Unit,
     recentLanguages: List<Language> = emptyList(),
@@ -55,7 +56,24 @@ fun AddWordScreen(
     var pos by remember(word.id) { mutableStateOf(word.partOfSpeech) }
     var language by remember(word.id) { mutableStateOf(Language.fromCode(word.languageCode)) }
 
-    val canSave = term.trim().isNotEmpty() && translation.trim().isNotEmpty()
+    val normalizedTerm = term.trim()
+    val normalizedTranslation = translation.trim()
+
+    val termTaken = words.any {
+        it.id != word.id &&
+                it.languageCode == language.code &&
+                it.term.equals(normalizedTerm, ignoreCase = true)
+    }
+    val translationTaken = words.any {
+        it.id != word.id &&
+                it.languageCode == language.code &&
+                it.translation.equals(normalizedTranslation, ignoreCase = true)
+    }
+
+    val canSave = normalizedTerm.isNotEmpty() &&
+            normalizedTranslation.isNotEmpty() &&
+            !termTaken &&
+            !translationTaken
 
     Column(
         modifier = Modifier
@@ -128,7 +146,22 @@ fun AddWordScreen(
                     ) {
                         Text("Termin", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
                         Spacer(Modifier.height(4.dp))
-                        SimpleField(term, { term = it }, FontWeight.SemiBold, colors.onSurface)
+                        SimpleField(
+                            term,
+                            { term = it.filter { c -> !c.isWhitespace() } },
+                            FontWeight.SemiBold,
+                            colors.onSurface
+                        )
+                        if (termTaken) {
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                "Takie słówko już jest w tym języku",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = colors.error.copy(alpha = 0.7f),
+                                lineHeight = 14.sp,
+                            )
+                        }
                     }
                     Column(
                         modifier = Modifier
@@ -137,6 +170,16 @@ fun AddWordScreen(
                         Text("Tłumaczenie", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
                         Spacer(Modifier.height(4.dp))
                         SimpleField(translation, { translation = it }, FontWeight.Medium, colors.onSurface)
+                        if (translationTaken) {
+                            Spacer(Modifier.height(6.dp))
+                            Text(
+                                "Takie tłumaczenie już jest w tym języku",
+                                fontSize = 11.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = colors.error.copy(alpha = 0.7f),
+                                lineHeight = 14.sp,
+                            )
+                        }
                     }
                 }
             }

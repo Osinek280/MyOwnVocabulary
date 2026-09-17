@@ -24,8 +24,8 @@ import com.example.myownvocabulary.data.AppDatabase
 import com.example.myownvocabulary.data.prefs.UserPreferences
 import com.example.myownvocabulary.ui.components.states.LoadingState
 import com.example.myownvocabulary.ui.components.states.WordNotFoundState
-import com.example.myownvocabulary.ui.screens.AddWordScreen
 import com.example.myownvocabulary.ui.screens.HomeScreen
+import com.example.myownvocabulary.ui.screens.WordDetailScreen
 import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModel
 import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModelFactory
 
@@ -95,7 +95,8 @@ fun VocabularyNavHost() {
             }
 
             composable(Routes.AddWord) {
-                AddWordScreen(
+                WordDetailScreen(
+                    words = uiState.words,
                     recentLanguages = recentLanguages,
                     onBack = { navController.popBackStack() },
                     onSave = { term, translation, pos, languageCode ->
@@ -116,8 +117,9 @@ fun VocabularyNavHost() {
 
                 when {
                     word != null -> {
-                        AddWordScreen(
+                        WordDetailScreen(
                             word = word,
+                            words = uiState.words,
                             onSave = { term, translation, pos, languageCode ->
                                 viewModel.save(id = word.id, term, translation, pos, languageCode)
                                 navController.popBackStack()
