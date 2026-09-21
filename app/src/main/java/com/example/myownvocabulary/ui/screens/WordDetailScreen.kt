@@ -56,11 +56,12 @@ fun WordDetailScreen(
     var pos by remember(word.id) { mutableStateOf(word.partOfSpeech) }
     var language by remember(word.id) {
         mutableStateOf(
-            if(isNew) {
-             recentLanguages.firstOrNull() ?: Language.fromCode(word.languageCode)
-            }else {
+            if (isNew) {
+                recentLanguages.firstOrNull() ?: Language.fromCode(word.languageCode)
+            } else {
                 Language.fromCode(word.languageCode)
-            })
+            }
+        )
     }
 
     val normalizedTerm = term.trim()
