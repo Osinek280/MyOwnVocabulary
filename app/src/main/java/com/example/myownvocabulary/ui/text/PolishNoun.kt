@@ -19,11 +19,7 @@ enum class PolishNumeralCase {
     }
 }
 
-data class PolishNoun(
-    val nominativeSingular: String,
-    val nominativePlural: String,
-    val genitivePlural: String,
-) {
+data class PolishNoun(val nominativeSingular: String, val nominativePlural: String, val genitivePlural: String) {
     fun inflect(count: Int): String = when (PolishNumeralCase.forCount(count)) {
         PolishNumeralCase.NominativeSingular -> nominativeSingular
         PolishNumeralCase.NominativePlural -> nominativePlural
@@ -36,5 +32,5 @@ data class PolishNoun(
 val ExpressionNoun = PolishNoun(
     nominativeSingular = "wyrażenie",
     nominativePlural = "wyrażenia",
-    genitivePlural = "wyrażeń",
+    genitivePlural = "wyrażeń"
 )

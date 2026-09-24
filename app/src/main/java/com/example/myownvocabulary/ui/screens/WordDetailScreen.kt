@@ -33,17 +33,27 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myownvocabulary.data.word.Language
 import com.example.myownvocabulary.data.word.PartOfSpeech
+import com.example.myownvocabulary.model.ContextSentence
 import com.example.myownvocabulary.model.Word
 import com.example.myownvocabulary.ui.components.BackButton
+import com.example.myownvocabulary.ui.components.ContextCard
 import com.example.myownvocabulary.ui.components.LanguagePicker
 import com.example.myownvocabulary.ui.components.SectionLabel
 
 @Composable
 fun WordDetailScreen(
-    word: Word = Word(id = "", term = "", translation = "", languageCode = "en", partOfSpeech = PartOfSpeech.Noun),
+    word: Word =
+        Word(
+            id = "",
+            term = "",
+            translation = "",
+            languageCode = "en",
+            partOfSpeech = PartOfSpeech.Noun,
+            contexts = emptyList()
+        ),
     words: List<Word>,
     onBack: () -> Unit = {},
-    onSave: (String, String, PartOfSpeech, String) -> Unit,
+    onSave: (String, String, PartOfSpeech, String, List<ContextSentence>) -> Unit,
     recentLanguages: List<Language> = emptyList(),
     onLanguageRemembered: (Language) -> Unit,
     onClearRecent: () -> Unit
@@ -63,6 +73,8 @@ fun WordDetailScreen(
             }
         )
     }
+
+    var contexts by remember(word.id) { mutableStateOf(word.contexts) }
 
     val normalizedTerm = term.trim()
     val normalizedTranslation = translation.trim()
@@ -107,7 +119,7 @@ fun WordDetailScreen(
                     .clip(RoundedCornerShape(12.dp))
                     .background(if (canSave) colors.primary else colors.surfaceVariant)
                     .clickable(enabled = canSave) {
-                        onSave(term.trim(), translation.trim(), pos, language.code)
+                        onSave(term.trim(), translation.trim(), pos, language.code, contexts)
                     }
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
@@ -188,6 +200,15 @@ fun WordDetailScreen(
                                 lineHeight = 14.sp
                             )
                         }
+                    }
+                }
+            }
+
+            Column {
+                SectionLabel("Konteksty użycia")
+                Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                    contexts.forEach { ctx ->
+                        ContextCard(ctx, onRemove = { contexts = contexts.filter { it.id != ctx.id } })
                     }
                 }
             }

@@ -47,6 +47,7 @@ fun VocabularyNavHost() {
         factory = remember {
             VocabularyViewModelFactory(
                 dao = AppDatabase.getInstance(context.applicationContext).wordDao(),
+                contextDao = AppDatabase.getInstance(context.applicationContext).contextSentenceDao(),
                 userPreferences = UserPreferences(appContext)
             )
         }
@@ -99,8 +100,8 @@ fun VocabularyNavHost() {
                     words = uiState.words,
                     recentLanguages = recentLanguages,
                     onBack = { navController.popBackStack() },
-                    onSave = { term, translation, pos, languageCode ->
-                        viewModel.save(id = null, term, translation, pos, languageCode)
+                    onSave = { term, translation, pos, languageCode, contexts ->
+                        viewModel.save(id = null, term, translation, pos, languageCode, contexts)
                         navController.popBackStack()
                     },
                     onLanguageRemembered = viewModel::rememberLanguage,
@@ -120,8 +121,8 @@ fun VocabularyNavHost() {
                         WordDetailScreen(
                             word = word,
                             words = uiState.words,
-                            onSave = { term, translation, pos, languageCode ->
-                                viewModel.save(id = word.id, term, translation, pos, languageCode)
+                            onSave = { term, translation, pos, languageCode, contexts ->
+                                viewModel.save(id = word.id, term, translation, pos, languageCode, contexts)
                                 navController.popBackStack()
                             },
                             recentLanguages = recentLanguages,

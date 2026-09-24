@@ -3,13 +3,17 @@ package com.example.myownvocabulary.ui.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
+import com.example.myownvocabulary.data.context.ContextSentenceDao
+import com.example.myownvocabulary.data.context.ContextSentenceEntity
 import com.example.myownvocabulary.data.prefs.UserPreferences
 import com.example.myownvocabulary.data.word.Language
 import com.example.myownvocabulary.data.word.PartOfSpeech
 import com.example.myownvocabulary.data.word.WordDao
 import com.example.myownvocabulary.data.word.WordEntity
+import com.example.myownvocabulary.model.ContextSentence
 import com.example.myownvocabulary.model.Word
 import com.example.myownvocabulary.model.toWord
+import java.util.UUID
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -21,7 +25,11 @@ import kotlinx.coroutines.launch
 
 data class WordsUiState(val words: List<Word> = emptyList(), val isLoading: Boolean = true)
 
-class VocabularyViewModel(private val dao: WordDao, private val userPreferences: UserPreferences) : ViewModel() {
+class VocabularyViewModel(
+    private val dao: WordDao,
+    private val contextDao: ContextSentenceDao,
+    private val userPreferences: UserPreferences
+) : ViewModel() {
     val uiState: StateFlow<WordsUiState> = dao.observeAll()
         .map { list ->
             WordsUiState(
@@ -82,18 +90,25 @@ class VocabularyViewModel(private val dao: WordDao, private val userPreferences:
         }
     }
 
-    fun save(id: String?, term: String, translation: String, pos: PartOfSpeech, languageCode: String) {
+    fun save(
+        id: String?,
+        term: String,
+        translation: String,
+        pos: PartOfSpeech,
+        languageCode: String,
+        contexts: List<ContextSentence>
+    ) {
         viewModelScope.launch {
-            if (id.isNullOrEmpty()) {
-                dao.insert(
-                    WordEntity(
-                        term = term.trim(),
-                        translation = translation.trim(),
-                        languageCode = languageCode,
-                        createdAt = System.currentTimeMillis(),
-                        partOfSpeech = pos
-                    )
+            val wordId = if (id.isNullOrEmpty()) {
+                val word = WordEntity(
+                    term = term.trim(),
+                    translation = translation.trim(),
+                    languageCode = languageCode,
+                    createdAt = System.currentTimeMillis(),
+                    partOfSpeech = pos
                 )
+                dao.insert(word)
+                word.id
             } else {
                 val existing = dao.getById(id) ?: return@launch
                 dao.update(
@@ -104,17 +119,39 @@ class VocabularyViewModel(private val dao: WordDao, private val userPreferences:
                         partOfSpeech = pos
                     )
                 )
+                id
+            }
+            val kept = contexts.filter { it.sentence.isNotBlank() }
+            val existingIds = dao.getWithContext(wordId)?.contexts?.map { it.id }.orEmpty()
+            val kepIds = kept.map { it.id }.toSet()
+            existingIds.filter { it !in kepIds }.forEach { contextDao.deleteById(it) }
+
+            if (kept.isNotEmpty()) {
+                contextDao.upsertAll(
+                    kept.map { sentence ->
+                        ContextSentenceEntity(
+                            id = sentence.id.ifBlank { UUID.randomUUID().toString() },
+                            wordId = wordId,
+                            sentence = sentence.sentence.trim(),
+                            translation = sentence.translation.trim(),
+                            highlights = sentence.highlights
+                        )
+                    }
+                )
             }
         }
     }
 }
 
-class VocabularyViewModelFactory(private val dao: WordDao, private val userPreferences: UserPreferences) :
-    ViewModelProvider.Factory {
+class VocabularyViewModelFactory(
+    private val dao: WordDao,
+    private val contextDao: ContextSentenceDao,
+    private val userPreferences: UserPreferences
+) : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(VocabularyViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return VocabularyViewModel(dao, userPreferences) as T
+            return VocabularyViewModel(dao, contextDao, userPreferences) as T
         }
         throw IllegalArgumentException("Unknown ViewModel class: ${modelClass.name}")
     }

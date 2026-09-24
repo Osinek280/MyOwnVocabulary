@@ -83,7 +83,7 @@ fun HomeScreen(
 //    }
     val filtered = words.filter { word ->
         val matchesSearch = word.term.contains(search, ignoreCase = true) ||
-                word.translation.contains(search, ignoreCase = true)
+            word.translation.contains(search, ignoreCase = true)
         val matchesLanguage = activeLanguage == null || word.languageCode == activeLanguage.code
         matchesSearch && matchesLanguage
     }
@@ -200,12 +200,14 @@ fun HomeScreen(
                                     contentColor = colors.onError
                                 )
                             }
-                        }else {
+                        } else {
                             Row(
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 FilterMenu(
-                                    label = activeLanguage?.let { "${it.flagEmoji} ${it.displayName}" } ?: "Wszystkie języki",
+                                    label =
+                                    activeLanguage?.let { "${it.flagEmoji} ${it.displayName}" }
+                                        ?: "Wszystkie języki",
                                     options = listOf(null) + languages,
                                     optionLabel = { language ->
                                         language?.let { "${it.flagEmoji} ${it.displayName}" } ?: "Wszystkie języki"
@@ -258,12 +260,7 @@ fun HomeScreen(
 }
 
 @Composable
-private fun <T> FilterMenu(
-    label: String,
-    options: List<T>,
-    optionLabel: (T) -> String,
-    onSelect: (T) -> Unit,
-) {
+private fun <T> FilterMenu(label: String, options: List<T>, optionLabel: (T) -> String, onSelect: (T) -> Unit) {
     var expanded by remember { mutableStateOf(false) }
     val colors = MaterialTheme.colorScheme
     Box {
@@ -303,7 +300,7 @@ private enum class EntryKind(val label: String) {
     Word("Słowa"),
     Expression("Wyrażenia"),
     Idiom("Idiomy"),
-    Sentence("Zdania"),
+    Sentence("Zdania")
 }
 
 @Composable
@@ -339,7 +336,6 @@ private fun WordRow(
     val badgeColor = posColor(word.partOfSpeech)
 
     val language = Language.fromCode(word.languageCode)
-
 
     Row(
         modifier = Modifier
