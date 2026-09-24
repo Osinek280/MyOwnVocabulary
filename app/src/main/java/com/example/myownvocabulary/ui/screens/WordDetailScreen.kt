@@ -97,7 +97,7 @@ fun WordDetailScreen(
         ) {
             BackButton(onPress = onBack)
             Text(
-                if (isNew) "Dodaj Nowe słowo" else "Edytuj słówko",
+                if (isNew) "Dodaj nowe wyrażenie" else "Edytuj wyrażenie",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = colors.onBackground
@@ -141,7 +141,7 @@ fun WordDetailScreen(
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                SectionLabel("Słówko")
+                SectionLabel("Wyrażenie")
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -163,7 +163,7 @@ fun WordDetailScreen(
                         if (termTaken) {
                             Spacer(Modifier.height(6.dp))
                             Text(
-                                "Takie słówko już jest w tym języku",
+                                "Takie wyrażenie już jest w tym języku",
                                 fontSize = 11.sp,
                                 fontWeight = FontWeight.Medium,
                                 color = colors.error.copy(alpha = 0.7f),

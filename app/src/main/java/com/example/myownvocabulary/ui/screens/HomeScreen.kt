@@ -20,6 +20,8 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -35,6 +37,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myownvocabulary.data.word.Language
 import com.example.myownvocabulary.model.Word
 import com.example.myownvocabulary.ui.components.CheckIcon
 import com.example.myownvocabulary.ui.components.ChevronRight
@@ -45,6 +48,8 @@ import com.example.myownvocabulary.ui.components.posColor
 import com.example.myownvocabulary.ui.components.states.EmptySearchState
 import com.example.myownvocabulary.ui.components.states.EmptyVocabularyState
 import com.example.myownvocabulary.ui.components.states.LoadingState
+import com.example.myownvocabulary.ui.text.ExpressionNoun
+import com.example.myownvocabulary.ui.text.PolishNumeralCase
 
 @Composable
 fun HomeScreen(
@@ -60,8 +65,27 @@ fun HomeScreen(
 ) {
     val colors = MaterialTheme.colorScheme
     var search by remember { mutableStateOf("") }
-    val filtered = words.filter {
-        it.term.contains(search, ignoreCase = true) || it.translation.contains(search, ignoreCase = true)
+
+    var languageFilter by remember { mutableStateOf<Language?>(null) }
+    var kindFilter by remember { mutableStateOf<EntryKind?>(null) }
+
+    val languages = remember(words) {
+        words.map { Language.fromCode(it.languageCode) }
+            .distinctBy { it.code }
+            .sortedBy { it.displayName }
+    }
+    val activeLanguage = languageFilter?.takeIf { selected ->
+        languages.any { it.code == selected.code }
+    }
+
+//    val filtered = words.filter {
+//        it.term.contains(search, ignoreCase = true) || it.translation.contains(search, ignoreCase = true)
+//    }
+    val filtered = words.filter { word ->
+        val matchesSearch = word.term.contains(search, ignoreCase = true) ||
+                word.translation.contains(search, ignoreCase = true)
+        val matchesLanguage = activeLanguage == null || word.languageCode == activeLanguage.code
+        matchesSearch && matchesLanguage
     }
 
     var pendingDelete by remember { mutableStateOf(false) }
@@ -73,8 +97,8 @@ fun HomeScreen(
     if (pendingDelete) {
         AlertDialog(
             onDismissRequest = { pendingDelete = false },
-            title = { Text("Usunąć słówka?") },
-            text = { Text("Zaznaczone ${selectedIds.size} słówek zostanie usunięte.") },
+            title = { Text("Usunąć wyrażenia?") },
+            text = { Text(deleteExpressionsConfirmation(selectedIds.size)) },
             confirmButton = {
                 TextButton(onClick = {
                     pendingDelete = false
@@ -120,7 +144,7 @@ fun HomeScreen(
             SearchBar(
                 value = search,
                 onValueChange = { search = it },
-                placeholder = "Szukaj słówka..."
+                placeholder = "Szukaj wyrażenia..."
             )
         }
         when {
@@ -147,6 +171,7 @@ fun HomeScreen(
                         .weight(1f)
                         .padding(horizontal = 20.dp)
                 ) {
+                    Spacer(Modifier.height(12.dp))
                     Row(
                         modifier = Modifier
                             .fillMaxWidth()
@@ -155,7 +180,7 @@ fun HomeScreen(
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            "${filtered.size} słówek",
+                            ExpressionNoun.withCount(filtered.size),
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium,
                             color = colors.outline
@@ -175,9 +200,31 @@ fun HomeScreen(
                                     contentColor = colors.onError
                                 )
                             }
+                        }else {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                            ) {
+                                FilterMenu(
+                                    label = activeLanguage?.let { "${it.flagEmoji} ${it.displayName}" } ?: "Wszystkie języki",
+                                    options = listOf(null) + languages,
+                                    optionLabel = { language ->
+                                        language?.let { "${it.flagEmoji} ${it.displayName}" } ?: "Wszystkie języki"
+                                    },
+                                    onSelect = { selected ->
+                                        languageFilter = selected
+                                        onClearSelection()
+                                    }
+                                )
+                                FilterMenu(
+                                    label = kindFilter?.label ?: "Wszystkie typy",
+                                    options = listOf<EntryKind?>(null) + EntryKind.entries,
+                                    optionLabel = { kind -> kind?.label ?: "Wszystkie" },
+                                    onSelect = { kindFilter = it }
+                                )
+                            }
                         }
                     }
-                    Spacer(Modifier.height(16.dp))
+                    Spacer(Modifier.height(12.dp))
                     LazyColumn(
                         modifier = Modifier.weight(1f),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -211,6 +258,55 @@ fun HomeScreen(
 }
 
 @Composable
+private fun <T> FilterMenu(
+    label: String,
+    options: List<T>,
+    optionLabel: (T) -> String,
+    onSelect: (T) -> Unit,
+) {
+    var expanded by remember { mutableStateOf(false) }
+    val colors = MaterialTheme.colorScheme
+    Box {
+        SelectionChip(
+            label = label,
+            onClick = { expanded = true },
+            containerColor = colors.surfaceVariant,
+            contentColor = colors.onSurface
+        )
+        DropdownMenu(
+            expanded = expanded,
+            onDismissRequest = { expanded = false }
+        ) {
+            options.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(optionLabel(option)) },
+                    onClick = {
+                        expanded = false
+                        onSelect(option)
+                    }
+                )
+            }
+        }
+    }
+}
+
+private fun deleteExpressionsConfirmation(count: Int): String {
+    val counted = ExpressionNoun.withCount(count)
+    return when (PolishNumeralCase.forCount(count)) {
+        PolishNumeralCase.NominativeSingular -> "Zaznaczone wyrażenie zostanie usunięte."
+        PolishNumeralCase.NominativePlural -> "Zaznaczone $counted zostaną usunięte."
+        PolishNumeralCase.GenitivePlural -> "Zaznaczonych $counted zostanie usuniętych."
+    }
+}
+
+private enum class EntryKind(val label: String) {
+    Word("Słowa"),
+    Expression("Wyrażenia"),
+    Idiom("Idiomy"),
+    Sentence("Zdania"),
+}
+
+@Composable
 private fun SelectionChip(label: String, onClick: () -> Unit, containerColor: Color, contentColor: Color) {
     Box(
         modifier = Modifier
@@ -241,6 +337,10 @@ private fun WordRow(
 ) {
     val colors = MaterialTheme.colorScheme
     val badgeColor = posColor(word.partOfSpeech)
+
+    val language = Language.fromCode(word.languageCode)
+
+
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -264,6 +364,11 @@ private fun WordRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
+            Text(
+                language.flagEmoji,
+                fontSize = 12.sp,
+                modifier = Modifier
+            )
             Text(word.term, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = colors.onSurface)
             Text(
                 word.partOfSpeech.badgeLabel(),

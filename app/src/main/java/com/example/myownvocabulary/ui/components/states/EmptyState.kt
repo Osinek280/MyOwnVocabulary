@@ -31,20 +31,20 @@ fun EmptyVocabularyState(onAddClick: () -> Unit) {
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         Text(
-            "Brak słówek",
+            "Brak wyrażeń",
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold,
             color = colors.onBackground
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Dodaj pierwsze słówko, żeby zacząć naukę.",
+            "Dodaj pierwsze wyrażenie, żeby zacząć naukę.",
             fontSize = 14.sp,
             color = colors.outline
         )
         Spacer(Modifier.height(20.dp))
         Button(onClick = onAddClick) {
-            Text("Dodaj słówko")
+            Text("Dodaj wyrażenie")
         }
     }
 }
@@ -92,14 +92,14 @@ fun WordNotFoundState(onBack: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Text(
-                "Nie znaleziono słówka",
+                "Nie znaleziono wyrażenia",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = colors.onBackground
             )
             Spacer(Modifier.height(8.dp))
             Text(
-                "To słówko zostało usunięte albo link jest nieprawidłowy.",
+                "To wyrażenie zostało usunięte albo link jest nieprawidłowy.",
                 fontSize = 14.sp,
                 color = colors.outline,
                 textAlign = TextAlign.Center,
