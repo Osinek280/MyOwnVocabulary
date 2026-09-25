@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.relocation.BringIntoViewRequester
 import androidx.compose.foundation.relocation.bringIntoViewRequester
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -40,10 +41,34 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myownvocabulary.data.context.TextSpan
 import com.example.myownvocabulary.model.ContextSentence
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Delete
+import androidx.compose.material.icons.outlined.Edit
+import androidx.compose.material3.FilledIconButton
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.text.style.TextOverflow
 
+enum class ContextStep { Idle, Sentence, Translation, Highlight }
+
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun ContextCard(ctx: ContextSentence, onRemove: () -> Unit) {
+fun ContextCard(
+    ctx: ContextSentence, 
+    onRemove: () -> Unit,
+    onEdit: () -> Unit
+) {
     val colors = MaterialTheme.colorScheme
+
+    var expanded by remember(ctx.id, ctx.sentence, ctx.translation) { mutableStateOf(false) }
+    var isLong by remember(ctx.id, ctx.sentence, ctx.translation) { mutableStateOf(false) }
 
     Row(
         modifier = Modifier
@@ -63,7 +88,10 @@ fun ContextCard(ctx: ContextSentence, onRemove: () -> Unit) {
                 fontSize = 15.sp,
                 lineHeight = 22.sp,
                 fontWeight = FontWeight.Medium,
-                color = colors.onSurface
+                color = colors.onSurface,
+                maxLines = if (expanded) Int.MAX_VALUE else 1,
+                overflow = TextOverflow.Ellipsis,
+                onTextLayout = { if (it.hasVisualOverflow || it.lineCount > 1) isLong = true }
             )
             if (ctx.translation.isNotBlank()) {
                 Text(
@@ -71,17 +99,76 @@ fun ContextCard(ctx: ContextSentence, onRemove: () -> Unit) {
                     fontSize = 13.sp,
                     lineHeight = 18.sp,
                     fontWeight = FontWeight.Medium,
-                    color = colors.onSurfaceVariant
+                    color = colors.onSurfaceVariant,
+                    maxLines = if (expanded) Int.MAX_VALUE else 1,
+                    overflow = TextOverflow.Ellipsis,
+                    onTextLayout = { if (it.hasVisualOverflow || it.lineCount > 1) isLong = true }
                 )
             }
+            if (isLong) {
+                Row(
+                    modifier = Modifier
+                        .clickable { expanded = !expanded },
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    Icon(
+                        imageVector = if (expanded) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
+                        contentDescription = null,
+                        tint = colors.primary,
+                        modifier = Modifier.size(16.dp)
+                    )
+                    Text(
+                        if (expanded) "Zwiń" else "Rozwiń",
+                        fontSize = 13.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = colors.primary
+                    )
+                }
+            }
         }
-        Text(
-            "Usuń",
-            fontSize = 12.sp,
-            lineHeight = 22.sp,
-            fontWeight = FontWeight.Medium,
-            color = colors.outline,
-            modifier = Modifier.clickable(onClick = onRemove)
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            ContextAction(
+                onClick = onEdit,
+                container = colors.primaryContainer,
+                tint = colors.primary,
+                contentDescription = "Edytuj",
+                icon = Icons.Outlined.Edit
+            )
+            ContextAction(
+                onClick = onRemove,
+                container = Color(0xFFFEE4E2),
+                tint = Color(0xFFEF4444),
+                contentDescription = "Usuń",
+                icon = Icons.Outlined.Delete
+            )
+        }
+    }
+}
+
+@Composable
+private fun ContextAction(
+    onClick: () -> Unit,
+    container: Color,
+    tint: Color,
+    contentDescription: String,
+    icon: ImageVector
+) {
+    FilledIconButton(
+        onClick = onClick,
+        modifier = Modifier.size(40.dp),
+        colors = IconButtonDefaults.filledIconButtonColors(
+            containerColor = container,
+            contentColor = tint
+        )
+    ) {
+        Icon(
+            imageVector = icon,
+            contentDescription = contentDescription,
+            modifier = Modifier.size(18.dp)
         )
     }
 }
@@ -267,4 +354,58 @@ private fun sentenceTokens(sentence: String): List<Pair<String, TextSpan>> {
         if (start < i) tokens += sentence.substring(start, i) to TextSpan(start, i)
     }
     return tokens
+}
+
+@Composable
+fun ContextWizard(
+    step: ContextStep,
+    sentenceDraft: String,
+    onSentenceDraftChange: (String) -> Unit,
+    translationDraft: String,
+    onTranslationDraftChange: (String) -> Unit,
+    highlightsDraft: List<TextSpan>,
+    onToggleHighlight: (TextSpan) -> Unit,
+    onStepChange: (ContextStep) -> Unit,
+    onConfirm: () -> Unit,
+    onCancel: () -> Unit
+) {
+    when (step) {
+        ContextStep.Idle -> Unit
+        ContextStep.Sentence -> AddContextCard(
+            title = "Wpisz zdanie z kontekstem",
+            placeholder = "np. Otwórz okno, jest duszno.",
+            draft = sentenceDraft,
+            onDraftChange = onSentenceDraftChange,
+            onNext = {
+                val sentence = sentenceDraft.trim()
+                if (sentence.isNotEmpty()) {
+                    onSentenceDraftChange(sentence)
+                    onStepChange(ContextStep.Translation)
+                }
+            },
+            onCancel = onCancel
+        )
+        ContextStep.Translation -> AddContextCard(
+            title = "Wpisz tłumaczenie zdania",
+            placeholder = "np. Open the window, it's stuffy.",
+            draft = translationDraft,
+            onDraftChange = onTranslationDraftChange,
+            onNext = {
+                val translation = translationDraft.trim()
+                if (translation.isNotEmpty()) {
+                    onTranslationDraftChange(translation)
+                    onStepChange(ContextStep.Highlight)
+                }
+            },
+            onCancel = onCancel
+        )
+        ContextStep.Highlight -> HighlightContextCard(
+            sentence = sentenceDraft,
+            translation = translationDraft,
+            highlights = highlightsDraft,
+            onToggle = onToggleHighlight,
+            onConfirm = onConfirm,
+            onCancel = onCancel
+        )
+    }
 }

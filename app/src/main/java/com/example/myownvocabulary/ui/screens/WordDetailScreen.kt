@@ -1,7 +1,6 @@
 package com.example.myownvocabulary.ui.screens
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -55,13 +54,13 @@ import com.example.myownvocabulary.model.Word
 import com.example.myownvocabulary.ui.components.AddContextCard
 import com.example.myownvocabulary.ui.components.BackButton
 import com.example.myownvocabulary.ui.components.ContextCard
+import com.example.myownvocabulary.ui.components.ContextStep
+import com.example.myownvocabulary.ui.components.ContextWizard
 import com.example.myownvocabulary.ui.components.HighlightContextCard
 import com.example.myownvocabulary.ui.components.LanguagePicker
 import com.example.myownvocabulary.ui.components.PlusIcon
 import com.example.myownvocabulary.ui.components.SectionLabel
 import java.util.UUID
-
-private enum class ContextStep { Idle, Sentence, Translation, Highlight }
 
 @Composable
 fun WordDetailScreen(
@@ -98,6 +97,9 @@ fun WordDetailScreen(
     }
 
     var contexts by remember(word.id) { mutableStateOf(word.contexts) }
+    var removedIds by remember(word.id) { mutableStateOf(emptySet<String>()) }
+    val visibleContexts = contexts.filter { it.id !in removedIds }
+    var editingId by remember(word.id) { mutableStateOf<String?>(null) }
 
     var step by remember { mutableStateOf(ContextStep.Idle) }
     var sentenceDraft by remember { mutableStateOf("") }
@@ -147,7 +149,7 @@ fun WordDetailScreen(
                     .clip(RoundedCornerShape(12.dp))
                     .background(if (canSave) colors.primary else colors.surfaceVariant)
                     .clickable(enabled = canSave) {
-                        onSave(term.trim(), translation.trim(), pos, language.code, contexts)
+                        onSave(term.trim(), translation.trim(), pos, language.code, contexts.filter { it.id !in removedIds })
                     }
                     .padding(horizontal = 16.dp, vertical = 8.dp)
             ) {
@@ -237,102 +239,243 @@ fun WordDetailScreen(
                 }
             }
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                SectionLabel("Konteksty użycia")
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    SectionLabel("Konteksty użycia")
+                    if (removedIds.isNotEmpty()) {
+                        Text(
+                            "Przywróć wszystko",
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = colors.primary,
+                            modifier = Modifier.clickable { removedIds = emptySet() }
+                        )
+                    }
+                }
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                    contexts.forEach { ctx ->
-                        ContextCard(ctx, onRemove = { contexts = contexts.filter { it.id != ctx.id } })
-                    }
-                    when (step) {
-                        ContextStep.Idle -> {
-                            if (contexts.isEmpty()) {
-                                Text(
-                                    "Nie masz dodanych jeszcze zadnych zdań kontektsowych, kliknij poniżej aby dodać",
-                                    fontSize = 13.sp,
-                                    lineHeight = 18.sp,
-                                    color = colors.onSurfaceVariant,
-                                    textAlign = TextAlign.Center,
-                                    modifier = Modifier.fillMaxWidth()
-                                )
-                            }
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .dashedBorder(2.dp, colors.outline, 16.dp)
-                                    .clickable {
-                                        sentenceDraft = ""
-                                        translationDraft = ""
-                                        highlightsDraft = emptyList()
-                                        step = ContextStep.Sentence
+                    visibleContexts.forEach { ctx ->
+                        if (ctx.id == editingId) {
+                            ContextWizard (
+                                step = step,
+                                sentenceDraft = sentenceDraft,
+                                onSentenceDraftChange = { sentenceDraft = it },
+                                translationDraft = translationDraft,
+                                onTranslationDraftChange = { translationDraft = it },
+                                highlightsDraft = highlightsDraft,
+                                onToggleHighlight = { span ->
+                                    highlightsDraft =
+                                        if (highlightsDraft.any { it.start == span.start && it.end == span.end }) {
+                                            highlightsDraft.filter { it.start != span.start || it.end != span.end }
+                                        } else {
+                                            highlightsDraft + span
+                                        }
+                                },
+                                onStepChange = { step = it },
+                                onConfirm = {
+                                    contexts = contexts.map {
+                                        if (it.id == ctx.id) {
+                                            it.copy(
+                                                sentence = sentenceDraft,
+                                                translation = translationDraft,
+                                                highlights = highlightsDraft
+                                            )
+                                        } else {
+                                            it
+                                        }
                                     }
-                                    .padding(vertical = 14.dp),
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                            ) {
-                                PlusIcon(color = colors.outline, iconSize = 16)
-                                Spacer(Modifier.width(8.dp))
-                                Text(
-                                    "Dodaj kontekst",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = colors.onSurfaceVariant
-                                )
-                            }
+                                    editingId = null
+                                    step = ContextStep.Idle
+                                },
+                                onCancel = {
+                                    editingId = null
+                                    step = ContextStep.Idle
+                                }
+                            )
+                        } else {
+                            ContextCard(
+                                ctx,
+                                onEdit = {
+                                    editingId = ctx.id
+                                    sentenceDraft = ctx.sentence
+                                    translationDraft = ctx.translation
+                                    highlightsDraft = ctx.highlights
+                                    step = ContextStep.Sentence
+                                },
+                                onRemove = {
+                                    if (editingId == ctx.id) {
+                                        editingId = null
+                                        step = ContextStep.Idle
+                                    }
+                                    removedIds = removedIds + ctx.id
+                                }
+                            )
                         }
-
-                        ContextStep.Sentence -> AddContextCard(
-                            title = "Wpisz zdanie z kontekstem",
-                            placeholder = "np. Otwórz okno, jest duszno.",
-                            draft = sentenceDraft,
-                            onDraftChange = { sentenceDraft = it },
-                            onNext = {
-                                val sentence = sentenceDraft.trim()
-                                if (sentence.isNotEmpty()) {
-                                    sentenceDraft = sentence
-                                    step = ContextStep.Translation
-                                }
-                            },
-                            onCancel = { step = ContextStep.Idle }
-                        )
-
-                        ContextStep.Translation -> AddContextCard(
-                            title = "Wpisz tłumaczenie zdania",
-                            placeholder = "np. Open the window, it's stuffy.",
-                            draft = translationDraft,
-                            onDraftChange = { translationDraft = it },
-                            onNext = {
-                                val translation = translationDraft.trim()
-                                if (translation.isNotEmpty()) {
-                                    translationDraft = translation
-                                    step = ContextStep.Highlight
-                                }
-                            },
-                            onCancel = { step = ContextStep.Idle }
-                        )
-
-                        ContextStep.Highlight -> HighlightContextCard(
-                            sentence = sentenceDraft,
-                            translation = translationDraft,
-                            highlights = highlightsDraft,
-                            onToggle = { span ->
-                                highlightsDraft =
-                                    if (highlightsDraft.any { it.start == span.start && it.end == span.end }) {
-                                        highlightsDraft.filter { it.start != span.start || it.end != span.end }
-                                    } else {
-                                        highlightsDraft + span
-                                    }
-                            },
-                            onConfirm = {
-                                contexts = contexts + ContextSentence(
-                                    id = UUID.randomUUID().toString(),
-                                    sentence = sentenceDraft,
-                                    translation = translationDraft,
-                                    highlights = highlightsDraft
-                                )
-                                step = ContextStep.Idle
-                            },
-                            onCancel = { step = ContextStep.Idle }
-                        )
                     }
+
+                    if (editingId == null) {
+                        when (step) {
+                            ContextStep.Idle -> {
+                                if (visibleContexts.isEmpty()) {
+                                    Text(
+                                        "Nie masz dodanych jeszcze zadnych zdań kontektsowych, kliknij poniżej aby dodać",
+                                        fontSize = 13.sp,
+                                        lineHeight = 18.sp,
+                                        color = colors.onSurfaceVariant,
+                                        textAlign = TextAlign.Center,
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .dashedBorder(2.dp, colors.outline, 16.dp)
+                                        .clickable {
+                                            sentenceDraft = ""
+                                            translationDraft = ""
+                                            highlightsDraft = emptyList()
+                                            step = ContextStep.Sentence
+                                        }
+                                        .padding(vertical = 14.dp),
+                                    horizontalArrangement = Arrangement.Center,
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    PlusIcon(color = colors.outline, iconSize = 16)
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "Dodaj kontekst",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.Medium,
+                                        color = colors.onSurfaceVariant
+                                    )
+                                }
+                            }
+
+                            else -> ContextWizard(
+                                step = step,
+                                sentenceDraft = sentenceDraft,
+                                onSentenceDraftChange = { sentenceDraft = it },
+                                translationDraft = translationDraft,
+                                onTranslationDraftChange = { translationDraft = it },
+                                highlightsDraft = highlightsDraft,
+                                onToggleHighlight = { span ->
+                                    highlightsDraft =
+                                        if (highlightsDraft.any { it.start == span.start && it.end == span.end }) {
+                                            highlightsDraft.filter { it.start != span.start || it.end != span.end }
+                                        } else {
+                                            highlightsDraft + span
+                                        }
+                                },
+                                onStepChange = { step = it },
+                                onConfirm = {
+                                    contexts = contexts + ContextSentence(
+                                        id = UUID.randomUUID().toString(),
+                                        sentence = sentenceDraft,
+                                        translation = translationDraft,
+                                        highlights = highlightsDraft
+                                    )
+                                    step = ContextStep.Idle
+                                },
+                                onCancel = { step = ContextStep.Idle }
+                            )
+                        }
+                    }
+//                    contexts.forEach { ctx ->
+//                        ContextCard(ctx, onRemove = { contexts = contexts.filter { it.id != ctx.id } })
+//                    }
+//                    when (step) {
+//                        ContextStep.Idle -> {
+//                            if (contexts.isEmpty()) {
+//                                Text(
+//                                    "Nie masz dodanych jeszcze zadnych zdań kontektsowych, kliknij poniżej aby dodać",
+//                                    fontSize = 13.sp,
+//                                    lineHeight = 18.sp,
+//                                    color = colors.onSurfaceVariant,
+//                                    textAlign = TextAlign.Center,
+//                                    modifier = Modifier.fillMaxWidth()
+//                                )
+//                            }
+//                            Row(
+//                                modifier = Modifier
+//                                    .fillMaxWidth()
+//                                    .dashedBorder(2.dp, colors.outline, 16.dp)
+//                                    .clickable {
+//                                        sentenceDraft = ""
+//                                        translationDraft = ""
+//                                        highlightsDraft = emptyList()
+//                                        step = ContextStep.Sentence
+//                                    }
+//                                    .padding(vertical = 14.dp),
+//                                horizontalArrangement = Arrangement.Center,
+//                                verticalAlignment = Alignment.CenterVertically,
+//                            ) {
+//                                PlusIcon(color = colors.outline, iconSize = 16)
+//                                Spacer(Modifier.width(8.dp))
+//                                Text(
+//                                    "Dodaj kontekst",
+//                                    fontSize = 14.sp,
+//                                    fontWeight = FontWeight.Medium,
+//                                    color = colors.onSurfaceVariant
+//                                )
+//                            }
+//                        }
+//
+//                        ContextStep.Sentence -> AddContextCard(
+//                            title = "Wpisz zdanie z kontekstem",
+//                            placeholder = "np. Otwórz okno, jest duszno.",
+//                            draft = sentenceDraft,
+//                            onDraftChange = { sentenceDraft = it },
+//                            onNext = {
+//                                val sentence = sentenceDraft.trim()
+//                                if (sentence.isNotEmpty()) {
+//                                    sentenceDraft = sentence
+//                                    step = ContextStep.Translation
+//                                }
+//                            },
+//                            onCancel = { step = ContextStep.Idle }
+//                        )
+//
+//                        ContextStep.Translation -> AddContextCard(
+//                            title = "Wpisz tłumaczenie zdania",
+//                            placeholder = "np. Open the window, it's stuffy.",
+//                            draft = translationDraft,
+//                            onDraftChange = { translationDraft = it },
+//                            onNext = {
+//                                val translation = translationDraft.trim()
+//                                if (translation.isNotEmpty()) {
+//                                    translationDraft = translation
+//                                    step = ContextStep.Highlight
+//                                }
+//                            },
+//                            onCancel = { step = ContextStep.Idle }
+//                        )
+//
+//                        ContextStep.Highlight -> HighlightContextCard(
+//                            sentence = sentenceDraft,
+//                            translation = translationDraft,
+//                            highlights = highlightsDraft,
+//                            onToggle = { span ->
+//                                highlightsDraft =
+//                                    if (highlightsDraft.any { it.start == span.start && it.end == span.end }) {
+//                                        highlightsDraft.filter { it.start != span.start || it.end != span.end }
+//                                    } else {
+//                                        highlightsDraft + span
+//                                    }
+//                            },
+//                            onConfirm = {
+//                                contexts = contexts + ContextSentence(
+//                                    id = UUID.randomUUID().toString(),
+//                                    sentence = sentenceDraft,
+//                                    translation = translationDraft,
+//                                    highlights = highlightsDraft
+//                                )
+//                                step = ContextStep.Idle
+//                            },
+//                            onCancel = { step = ContextStep.Idle }
+//                        )
+//                    }
                 }
             }
         }
