@@ -1,6 +1,7 @@
 package com.example.myownvocabulary.ui.screens
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -10,11 +11,18 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.exclude
+import androidx.compose.foundation.layout.ime
+import androidx.compose.foundation.layout.navigationBars
+import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -25,20 +33,35 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myownvocabulary.data.context.TextSpan
 import com.example.myownvocabulary.data.word.Language
 import com.example.myownvocabulary.data.word.PartOfSpeech
 import com.example.myownvocabulary.model.ContextSentence
 import com.example.myownvocabulary.model.Word
+import com.example.myownvocabulary.ui.components.AddContextCard
 import com.example.myownvocabulary.ui.components.BackButton
 import com.example.myownvocabulary.ui.components.ContextCard
+import com.example.myownvocabulary.ui.components.HighlightContextCard
 import com.example.myownvocabulary.ui.components.LanguagePicker
+import com.example.myownvocabulary.ui.components.PlusIcon
 import com.example.myownvocabulary.ui.components.SectionLabel
+import java.util.UUID
+
+private enum class ContextStep { Idle, Sentence, Translation, Highlight }
 
 @Composable
 fun WordDetailScreen(
@@ -75,6 +98,11 @@ fun WordDetailScreen(
     }
 
     var contexts by remember(word.id) { mutableStateOf(word.contexts) }
+
+    var step by remember { mutableStateOf(ContextStep.Idle) }
+    var sentenceDraft by remember { mutableStateOf("") }
+    var translationDraft by remember { mutableStateOf("") }
+    var highlightsDraft by remember { mutableStateOf<List<TextSpan>>(emptyList()) }
 
     val normalizedTerm = term.trim()
     val normalizedTranslation = translation.trim()
@@ -135,6 +163,7 @@ fun WordDetailScreen(
         Column(
             modifier = Modifier
                 .weight(1f)
+                .windowInsetsPadding(WindowInsets.ime.exclude(WindowInsets.navigationBars))
                 .verticalScroll(rememberScrollState())
                 .padding(horizontal = 20.dp),
             verticalArrangement = Arrangement.spacedBy(20.dp)
@@ -183,6 +212,10 @@ fun WordDetailScreen(
                             )
                         }
                     }
+                    HorizontalDivider(
+                        thickness = 1.dp,
+                        color = colors.outlineVariant
+                    )
                     Column(
                         modifier = Modifier
                             .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)
@@ -203,17 +236,123 @@ fun WordDetailScreen(
                     }
                 }
             }
-
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 SectionLabel("Konteksty użycia")
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     contexts.forEach { ctx ->
                         ContextCard(ctx, onRemove = { contexts = contexts.filter { it.id != ctx.id } })
                     }
+                    when (step) {
+                        ContextStep.Idle -> {
+                            if (contexts.isEmpty()) {
+                                Text(
+                                    "Nie masz dodanych jeszcze zadnych zdań kontektsowych, kliknij poniżej aby dodać",
+                                    fontSize = 13.sp,
+                                    lineHeight = 18.sp,
+                                    color = colors.onSurfaceVariant,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .dashedBorder(2.dp, colors.outline, 16.dp)
+                                    .clickable {
+                                        sentenceDraft = ""
+                                        translationDraft = ""
+                                        highlightsDraft = emptyList()
+                                        step = ContextStep.Sentence
+                                    }
+                                    .padding(vertical = 14.dp),
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                PlusIcon(color = colors.outline, iconSize = 16)
+                                Spacer(Modifier.width(8.dp))
+                                Text(
+                                    "Dodaj kontekst",
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium,
+                                    color = colors.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        ContextStep.Sentence -> AddContextCard(
+                            title = "Wpisz zdanie z kontekstem",
+                            placeholder = "np. Otwórz okno, jest duszno.",
+                            draft = sentenceDraft,
+                            onDraftChange = { sentenceDraft = it },
+                            onNext = {
+                                val sentence = sentenceDraft.trim()
+                                if (sentence.isNotEmpty()) {
+                                    sentenceDraft = sentence
+                                    step = ContextStep.Translation
+                                }
+                            },
+                            onCancel = { step = ContextStep.Idle }
+                        )
+
+                        ContextStep.Translation -> AddContextCard(
+                            title = "Wpisz tłumaczenie zdania",
+                            placeholder = "np. Open the window, it's stuffy.",
+                            draft = translationDraft,
+                            onDraftChange = { translationDraft = it },
+                            onNext = {
+                                val translation = translationDraft.trim()
+                                if (translation.isNotEmpty()) {
+                                    translationDraft = translation
+                                    step = ContextStep.Highlight
+                                }
+                            },
+                            onCancel = { step = ContextStep.Idle }
+                        )
+
+                        ContextStep.Highlight -> HighlightContextCard(
+                            sentence = sentenceDraft,
+                            translation = translationDraft,
+                            highlights = highlightsDraft,
+                            onToggle = { span ->
+                                highlightsDraft =
+                                    if (highlightsDraft.any { it.start == span.start && it.end == span.end }) {
+                                        highlightsDraft.filter { it.start != span.start || it.end != span.end }
+                                    } else {
+                                        highlightsDraft + span
+                                    }
+                            },
+                            onConfirm = {
+                                contexts = contexts + ContextSentence(
+                                    id = UUID.randomUUID().toString(),
+                                    sentence = sentenceDraft,
+                                    translation = translationDraft,
+                                    highlights = highlightsDraft
+                                )
+                                step = ContextStep.Idle
+                            },
+                            onCancel = { step = ContextStep.Idle }
+                        )
+                    }
                 }
             }
         }
     }
+}
+
+private fun Modifier.dashedBorder(width: Dp, color: Color, cornerRadius: Dp): Modifier = drawBehind {
+    val strokeWidth = width.toPx()
+    val inset = strokeWidth / 2f
+    val dash = strokeWidth * 3f
+    drawRoundRect(
+        color = color,
+        topLeft = Offset(inset, inset),
+        size = Size(size.width - strokeWidth, size.height - strokeWidth),
+        cornerRadius = CornerRadius(cornerRadius.toPx() - inset),
+        style = Stroke(
+            width = strokeWidth,
+            pathEffect = PathEffect.dashPathEffect(floatArrayOf(dash, dash), 0f),
+        ),
+    )
 }
 
 @Composable
