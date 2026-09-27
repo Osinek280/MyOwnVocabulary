@@ -6,6 +6,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.myownvocabulary.data.context.ContextSentenceDao
 import com.example.myownvocabulary.data.entry.EntryDao
 import com.example.myownvocabulary.data.entry.EntryEntity
+import com.example.myownvocabulary.data.entry.EntryKind
 import com.example.myownvocabulary.data.entry.Language
 import com.example.myownvocabulary.data.entry.PartOfSpeech
 import com.example.myownvocabulary.data.prefs.UserPreferences
@@ -95,7 +96,8 @@ class VocabularyViewModel(
         translation: String,
         pos: PartOfSpeech,
         languageCode: String,
-        contexts: List<ContextSentence>
+        contexts: List<ContextSentence>,
+        kind: EntryKind
     ) {
         viewModelScope.launch {
             val entryId = if (id.isNullOrEmpty()) {
@@ -104,7 +106,8 @@ class VocabularyViewModel(
                     translation = translation.trim(),
                     languageCode = languageCode,
                     createdAt = System.currentTimeMillis(),
-                    partOfSpeech = pos
+                    partOfSpeech = pos,
+                    kind = kind
                 )
                 dao.insert(entry)
                 entry.id

@@ -50,12 +50,10 @@ fun EmptyVocabularyState(onAddClick: () -> Unit) {
 }
 
 @Composable
-fun EmptySearchState(query: String) {
+fun EmptySearchState(query: String, modifier: Modifier = Modifier.fillMaxSize()) {
     val colors = MaterialTheme.colorScheme
     Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(horizontal = 32.dp),
+        modifier = modifier.padding(horizontal = 32.dp),
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
@@ -67,9 +65,14 @@ fun EmptySearchState(query: String) {
         )
         Spacer(Modifier.height(8.dp))
         Text(
-            "Brak wyników dla „$query”.",
+            if (query.isBlank()) {
+                "Żaden wpis nie pasuje do wybranych filtrów."
+            } else {
+                "Brak wyników dla „$query”."
+            },
             fontSize = 14.sp,
-            color = colors.outline
+            color = colors.outline,
+            textAlign = TextAlign.Center
         )
     }
 }

@@ -12,7 +12,7 @@ import com.example.myownvocabulary.data.entry.EntryEntity
 
 @Database(
     entities = [EntryEntity::class, ContextSentenceEntity::class],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 @TypeConverters(Converters::class)

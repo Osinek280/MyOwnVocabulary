@@ -2,6 +2,7 @@ package com.example.myownvocabulary.data
 
 import androidx.room.TypeConverter
 import com.example.myownvocabulary.data.context.TextSpan
+import com.example.myownvocabulary.data.entry.EntryKind
 import com.example.myownvocabulary.data.entry.PartOfSpeech
 
 class Converters {
@@ -23,4 +24,10 @@ class Converters {
             TextSpan(start.toInt(), end.toInt())
         }
     }
+
+    @TypeConverter
+    fun fromEntryKind(value: EntryKind): String = value.name
+
+    @TypeConverter
+    fun toEntryKind(value: String): EntryKind = EntryKind.valueOf(value)
 }

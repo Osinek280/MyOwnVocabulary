@@ -103,8 +103,8 @@ fun VocabularyNavHost() {
                     initialContexts = emptyList(),
                     recentLanguages = recentLanguages,
                     onBack = { navController.popBackStack() },
-                    onSave = { term, translation, pos, languageCode, contexts ->
-                        viewModel.save(id = null, term, translation, pos, languageCode, contexts)
+                    onSave = { term, translation, pos, languageCode, contexts, kind ->
+                        viewModel.save(id = null, term, translation, pos, languageCode, contexts, kind)
                         navController.popBackStack()
                     },
                     onLanguageRemembered = viewModel::rememberLanguage,
@@ -131,8 +131,8 @@ fun VocabularyNavHost() {
                             entry = entry,
                             initialContexts = loadedContexts,
                             entries = uiState.entries,
-                            onSave = { term, translation, pos, languageCode, contexts ->
-                                viewModel.save(id = entry.id, term, translation, pos, languageCode, contexts)
+                            onSave = { term, translation, pos, languageCode, contexts, kind ->
+                                viewModel.save(id = entry.id, term, translation, pos, languageCode, contexts, kind)
                                 navController.popBackStack()
                             },
                             recentLanguages = recentLanguages,

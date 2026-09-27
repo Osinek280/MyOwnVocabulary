@@ -12,5 +12,6 @@ data class EntryEntity(
     val translation: String,
     val languageCode: String,
     val createdAt: Long,
-    val partOfSpeech: PartOfSpeech
+    val partOfSpeech: PartOfSpeech,
+    val kind: EntryKind
 )

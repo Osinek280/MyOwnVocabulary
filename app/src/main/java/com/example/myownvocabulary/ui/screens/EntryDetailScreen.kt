@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myownvocabulary.data.context.TextSpan
+import com.example.myownvocabulary.data.entry.EntryKind
 import com.example.myownvocabulary.data.entry.Language
 import com.example.myownvocabulary.data.entry.PartOfSpeech
 import com.example.myownvocabulary.model.ContextSentence
@@ -68,12 +69,13 @@ fun EntryDetailScreen(
             term = "",
             translation = "",
             languageCode = "en",
-            partOfSpeech = PartOfSpeech.Noun
+            partOfSpeech = PartOfSpeech.Noun,
+            kind = EntryKind.Word
         ),
     initialContexts: List<ContextSentence>,
     entries: List<Entry>,
     onBack: () -> Unit = {},
-    onSave: (String, String, PartOfSpeech, String, List<ContextSentence>) -> Unit,
+    onSave: (String, String, PartOfSpeech, String, List<ContextSentence>, EntryKind) -> Unit,
     recentLanguages: List<Language> = emptyList(),
     onLanguageRemembered: (Language) -> Unit,
     onClearRecent: () -> Unit
@@ -155,7 +157,8 @@ fun EntryDetailScreen(
                             contexts.filter {
                                 it.id !in
                                     removedIds
-                            }
+                            },
+                            entry.kind
                         )
                     }
                     .padding(horizontal = 16.dp, vertical = 8.dp)

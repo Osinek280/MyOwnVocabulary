@@ -38,6 +38,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.myownvocabulary.data.entry.EntryKind
 import com.example.myownvocabulary.data.entry.Language
 import com.example.myownvocabulary.model.Entry
 import com.example.myownvocabulary.ui.components.CheckIcon
@@ -83,7 +84,8 @@ fun HomeScreen(
         val matchesSearch = entry.term.contains(search, ignoreCase = true) ||
             entry.translation.contains(search, ignoreCase = true)
         val matchesLanguage = activeLanguage == null || entry.languageCode == activeLanguage.code
-        matchesSearch && matchesLanguage
+        val matchesKind = kindFilter == null || entry.kind == kindFilter
+        matchesSearch && matchesLanguage && matchesKind
     }
 
     var pendingDelete by remember { mutableStateOf(false) }
@@ -158,10 +160,6 @@ fun HomeScreen(
                 EmptyVocabularyState(onAddClick = onAddClick)
             }
 
-            filtered.isEmpty() -> {
-                EmptySearchState(query = search)
-            }
-
             else -> {
                 val inSelection = selectedIds.isNotEmpty()
                 Column(
@@ -219,37 +217,49 @@ fun HomeScreen(
                                     label = kindFilter?.label ?: "Wszystkie typy",
                                     options = listOf<EntryKind?>(null) + EntryKind.entries,
                                     optionLabel = { kind -> kind?.label ?: "Wszystkie" },
-                                    onSelect = { kindFilter = it }
+                                    onSelect = { selected ->
+                                        kindFilter = selected
+                                        onClearSelection()
+                                    }
                                 )
                             }
                         }
                     }
                     Spacer(Modifier.height(12.dp))
-                    LazyColumn(
-                        modifier = Modifier.weight(1f),
-                        contentPadding = PaddingValues(bottom = 12.dp),
-                        verticalArrangement = Arrangement.spacedBy(10.dp)
-                    ) {
-                        items(filtered, key = { it.id }) { entry ->
-                            EntryRow(
-                                entry = entry,
-                                isSelectionMode = inSelection,
-                                isSelected = entry.id in selectedIds,
-                                onClick = {
-                                    if (inSelection) {
-                                        onToggleSelect(entry.id)
-                                    } else {
-                                        onEntryClick(entry.id)
+                    if (filtered.isEmpty()) {
+                        EmptySearchState(
+                            query = search,
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth()
+                        )
+                    } else {
+                        LazyColumn(
+                            modifier = Modifier.weight(1f),
+                            contentPadding = PaddingValues(bottom = 12.dp),
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            items(filtered, key = { it.id }) { entry ->
+                                EntryRow(
+                                    entry = entry,
+                                    isSelectionMode = inSelection,
+                                    isSelected = entry.id in selectedIds,
+                                    onClick = {
+                                        if (inSelection) {
+                                            onToggleSelect(entry.id)
+                                        } else {
+                                            onEntryClick(entry.id)
+                                        }
+                                    },
+                                    onLongClick = {
+                                        if (inSelection) {
+                                            onToggleSelect(entry.id)
+                                        } else {
+                                            onEnterSelection(entry.id)
+                                        }
                                     }
-                                },
-                                onLongClick = {
-                                    if (inSelection) {
-                                        onToggleSelect(entry.id)
-                                    } else {
-                                        onEnterSelection(entry.id)
-                                    }
-                                }
-                            )
+                                )
+                            }
                         }
                     }
                 }
@@ -293,13 +303,6 @@ private fun deleteExpressionsConfirmation(count: Int): String {
         PolishNumeralCase.NominativePlural -> "Zaznaczone $counted zostaną usunięte."
         PolishNumeralCase.GenitivePlural -> "Zaznaczonych $counted zostanie usuniętych."
     }
-}
-
-private enum class EntryKind(val label: String) {
-    Word("Słowa"),
-    Expression("Wyrażenia"),
-    Idiom("Idiomy"),
-    Sentence("Zdania")
 }
 
 @Composable

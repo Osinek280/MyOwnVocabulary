@@ -1,6 +1,7 @@
 package com.example.myownvocabulary.model
 
 import com.example.myownvocabulary.data.entry.EntryEntity
+import com.example.myownvocabulary.data.entry.EntryKind
 import com.example.myownvocabulary.data.entry.PartOfSpeech
 
 data class Entry(
@@ -8,7 +9,8 @@ data class Entry(
     val term: String,
     val translation: String,
     val languageCode: String,
-    val partOfSpeech: PartOfSpeech
+    val partOfSpeech: PartOfSpeech,
+    val kind: EntryKind
 )
 
 fun EntryEntity.toModel() = Entry(
@@ -16,5 +18,6 @@ fun EntryEntity.toModel() = Entry(
     term = term,
     translation = translation,
     languageCode = languageCode,
-    partOfSpeech = partOfSpeech
+    partOfSpeech = partOfSpeech,
+    kind = kind
 )
