@@ -6,18 +6,13 @@ import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
 import androidx.room.Update
-import com.example.myownvocabulary.data.context.WordWithContext
 import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface WordDao {
     @Transaction
     @Query("SELECT * FROM words ORDER BY createdAt DESC")
-    fun observeAll(): Flow<List<WordWithContext>>
-
-    @Transaction
-    @Query("SELECT * FROM words WHERE id = :id")
-    suspend fun getWithContext(id: String): WordWithContext?
+    fun observeAll(): Flow<List<WordEntity>>
 
     @Query("SELECT * FROM words WHERE id = :id")
     suspend fun getById(id: String): WordEntity?

@@ -68,9 +68,9 @@ fun WordDetailScreen(
             term = "",
             translation = "",
             languageCode = "en",
-            partOfSpeech = PartOfSpeech.Noun,
-            contexts = emptyList()
+            partOfSpeech = PartOfSpeech.Noun
         ),
+    initialContexts: List<ContextSentence>,
     words: List<Word>,
     onBack: () -> Unit = {},
     onSave: (String, String, PartOfSpeech, String, List<ContextSentence>) -> Unit,
@@ -94,7 +94,7 @@ fun WordDetailScreen(
         )
     }
 
-    var contexts by remember(word.id) { mutableStateOf(word.contexts) }
+    var contexts by remember(word.id) { mutableStateOf(initialContexts) }
     var removedIds by remember(word.id) { mutableStateOf(emptySet<String>()) }
     val visibleContexts = contexts.filter { it.id !in removedIds }
     var editingId by remember(word.id) { mutableStateOf<String?>(null) }

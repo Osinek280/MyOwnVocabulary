@@ -4,7 +4,6 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.myownvocabulary.data.context.ContextSentenceDao
-import com.example.myownvocabulary.data.context.ContextSentenceEntity
 import com.example.myownvocabulary.data.prefs.UserPreferences
 import com.example.myownvocabulary.data.word.Language
 import com.example.myownvocabulary.data.word.PartOfSpeech
@@ -12,8 +11,8 @@ import com.example.myownvocabulary.data.word.WordDao
 import com.example.myownvocabulary.data.word.WordEntity
 import com.example.myownvocabulary.model.ContextSentence
 import com.example.myownvocabulary.model.Word
-import com.example.myownvocabulary.model.toWord
-import java.util.UUID
+import com.example.myownvocabulary.model.toEntity
+import com.example.myownvocabulary.model.toModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -33,7 +32,7 @@ class VocabularyViewModel(
     val uiState: StateFlow<WordsUiState> = dao.observeAll()
         .map { list ->
             WordsUiState(
-                words = list.map { it.toWord() },
+                words = list.map { it.toModel() },
                 isLoading = false
             )
         }
@@ -46,8 +45,8 @@ class VocabularyViewModel(
     private val _selectedIds = MutableStateFlow<Set<String>>(emptySet())
     val selectedIds: StateFlow<Set<String>> = _selectedIds.asStateFlow()
 
-    val isSelectionMode: Boolean
-        get() = _selectedIds.value.isNotEmpty()
+    suspend fun loadContexts(wordId: String): List<ContextSentence> =
+        contextDao.getByWordId(wordId).map { it.toModel() }
 
     fun toggleSelection(id: String) {
         _selectedIds.update { current ->
@@ -122,21 +121,13 @@ class VocabularyViewModel(
                 id
             }
             val kept = contexts.filter { it.sentence.isNotBlank() }
-            val existingIds = dao.getWithContext(wordId)?.contexts?.map { it.id }.orEmpty()
+            val existingIds = contextDao.getByWordId(wordId).map { it.id }
             val kepIds = kept.map { it.id }.toSet()
             existingIds.filter { it !in kepIds }.forEach { contextDao.deleteById(it) }
 
             if (kept.isNotEmpty()) {
                 contextDao.upsertAll(
-                    kept.map { sentence ->
-                        ContextSentenceEntity(
-                            id = sentence.id.ifBlank { UUID.randomUUID().toString() },
-                            wordId = wordId,
-                            sentence = sentence.sentence.trim(),
-                            translation = sentence.translation.trim(),
-                            highlights = sentence.highlights
-                        )
-                    }
+                    kept.map { it.toEntity(wordId) }
                 )
             }
         }

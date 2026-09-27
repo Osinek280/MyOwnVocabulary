@@ -7,6 +7,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -22,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.myownvocabulary.data.AppDatabase
 import com.example.myownvocabulary.data.prefs.UserPreferences
+import com.example.myownvocabulary.model.ContextSentence
 import com.example.myownvocabulary.ui.components.states.LoadingState
 import com.example.myownvocabulary.ui.components.states.WordNotFoundState
 import com.example.myownvocabulary.ui.screens.HomeScreen
@@ -98,6 +100,7 @@ fun VocabularyNavHost() {
             composable(Routes.ADD_WORD) {
                 WordDetailScreen(
                     words = uiState.words,
+                    initialContexts = emptyList(),
                     recentLanguages = recentLanguages,
                     onBack = { navController.popBackStack() },
                     onSave = { term, translation, pos, languageCode, contexts ->
@@ -116,10 +119,17 @@ fun VocabularyNavHost() {
                 val wordId = entry.arguments?.getString("wordId")
                 val word = uiState.words.find { it.id == wordId }
 
+                val contexts by produceState<List<ContextSentence>?>(null, wordId) {
+                    value = if (wordId == null) emptyList() else viewModel.loadContexts(wordId)
+                }
+
+                val loadedContexts = contexts
+
                 when {
-                    word != null -> {
+                    word != null && loadedContexts != null -> {
                         WordDetailScreen(
                             word = word,
+                            initialContexts = loadedContexts,
                             words = uiState.words,
                             onSave = { term, translation, pos, languageCode, contexts ->
                                 viewModel.save(id = word.id, term, translation, pos, languageCode, contexts)
