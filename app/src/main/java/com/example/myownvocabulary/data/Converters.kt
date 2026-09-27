@@ -2,7 +2,7 @@ package com.example.myownvocabulary.data
 
 import androidx.room.TypeConverter
 import com.example.myownvocabulary.data.context.TextSpan
-import com.example.myownvocabulary.data.word.PartOfSpeech
+import com.example.myownvocabulary.data.entry.PartOfSpeech
 
 class Converters {
     @TypeConverter

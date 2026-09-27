@@ -75,7 +75,7 @@ fun EmptySearchState(query: String) {
 }
 
 @Composable
-fun WordNotFoundState(onBack: () -> Unit) {
+fun EntryNotFoundState(onBack: () -> Unit) {
     val colors = MaterialTheme.colorScheme
     Column(modifier = Modifier.fillMaxSize()) {
         Row(

@@ -4,13 +4,13 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.myownvocabulary.data.context.ContextSentenceDao
+import com.example.myownvocabulary.data.entry.EntryDao
+import com.example.myownvocabulary.data.entry.EntryEntity
+import com.example.myownvocabulary.data.entry.Language
+import com.example.myownvocabulary.data.entry.PartOfSpeech
 import com.example.myownvocabulary.data.prefs.UserPreferences
-import com.example.myownvocabulary.data.word.Language
-import com.example.myownvocabulary.data.word.PartOfSpeech
-import com.example.myownvocabulary.data.word.WordDao
-import com.example.myownvocabulary.data.word.WordEntity
 import com.example.myownvocabulary.model.ContextSentence
-import com.example.myownvocabulary.model.Word
+import com.example.myownvocabulary.model.Entry
 import com.example.myownvocabulary.model.toEntity
 import com.example.myownvocabulary.model.toModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -22,31 +22,31 @@ import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
-data class WordsUiState(val words: List<Word> = emptyList(), val isLoading: Boolean = true)
+data class EntriesUiState(val entries: List<Entry> = emptyList(), val isLoading: Boolean = true)
 
 class VocabularyViewModel(
-    private val dao: WordDao,
+    private val dao: EntryDao,
     private val contextDao: ContextSentenceDao,
     private val userPreferences: UserPreferences
 ) : ViewModel() {
-    val uiState: StateFlow<WordsUiState> = dao.observeAll()
+    val uiState: StateFlow<EntriesUiState> = dao.observeAll()
         .map { list ->
-            WordsUiState(
-                words = list.map { it.toModel() },
+            EntriesUiState(
+                entries = list.map { it.toModel() },
                 isLoading = false
             )
         }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = WordsUiState(isLoading = true)
+            initialValue = EntriesUiState(isLoading = true)
         )
 
     private val _selectedIds = MutableStateFlow<Set<String>>(emptySet())
     val selectedIds: StateFlow<Set<String>> = _selectedIds.asStateFlow()
 
-    suspend fun loadContexts(wordId: String): List<ContextSentence> =
-        contextDao.getByWordId(wordId).map { it.toModel() }
+    suspend fun loadContexts(entryId: String): List<ContextSentence> =
+        contextDao.getByEntryId(entryId).map { it.toModel() }
 
     fun toggleSelection(id: String) {
         _selectedIds.update { current ->
@@ -98,16 +98,16 @@ class VocabularyViewModel(
         contexts: List<ContextSentence>
     ) {
         viewModelScope.launch {
-            val wordId = if (id.isNullOrEmpty()) {
-                val word = WordEntity(
+            val entryId = if (id.isNullOrEmpty()) {
+                val entry = EntryEntity(
                     term = term.trim(),
                     translation = translation.trim(),
                     languageCode = languageCode,
                     createdAt = System.currentTimeMillis(),
                     partOfSpeech = pos
                 )
-                dao.insert(word)
-                word.id
+                dao.insert(entry)
+                entry.id
             } else {
                 val existing = dao.getById(id) ?: return@launch
                 dao.update(
@@ -121,13 +121,13 @@ class VocabularyViewModel(
                 id
             }
             val kept = contexts.filter { it.sentence.isNotBlank() }
-            val existingIds = contextDao.getByWordId(wordId).map { it.id }
+            val existingIds = contextDao.getByEntryId(entryId).map { it.id }
             val kepIds = kept.map { it.id }.toSet()
             existingIds.filter { it !in kepIds }.forEach { contextDao.deleteById(it) }
 
             if (kept.isNotEmpty()) {
                 contextDao.upsertAll(
-                    kept.map { it.toEntity(wordId) }
+                    kept.map { it.toEntity(entryId) }
                 )
             }
         }
@@ -135,7 +135,7 @@ class VocabularyViewModel(
 }
 
 class VocabularyViewModelFactory(
-    private val dao: WordDao,
+    private val dao: EntryDao,
     private val contextDao: ContextSentenceDao,
     private val userPreferences: UserPreferences
 ) : ViewModelProvider.Factory {

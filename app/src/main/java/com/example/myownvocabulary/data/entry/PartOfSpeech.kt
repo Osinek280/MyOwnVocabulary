@@ -1,4 +1,4 @@
-package com.example.myownvocabulary.data.word
+package com.example.myownvocabulary.data.entry
 
 enum class PartOfSpeech {
     Noun,

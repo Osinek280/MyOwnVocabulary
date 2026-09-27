@@ -7,17 +7,17 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import com.example.myownvocabulary.data.context.ContextSentenceDao
 import com.example.myownvocabulary.data.context.ContextSentenceEntity
-import com.example.myownvocabulary.data.word.WordDao
-import com.example.myownvocabulary.data.word.WordEntity
+import com.example.myownvocabulary.data.entry.EntryDao
+import com.example.myownvocabulary.data.entry.EntryEntity
 
 @Database(
-    entities = [WordEntity::class, ContextSentenceEntity::class],
-    version = 4,
+    entities = [EntryEntity::class, ContextSentenceEntity::class],
+    version = 6,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
-    abstract fun wordDao(): WordDao
+    abstract fun entryDao(): EntryDao
     abstract fun contextSentenceDao(): ContextSentenceDao
 
     companion object {

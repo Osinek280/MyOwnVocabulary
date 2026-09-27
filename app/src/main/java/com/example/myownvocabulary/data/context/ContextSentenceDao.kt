@@ -14,9 +14,9 @@ interface ContextSentenceDao {
     @Query("DELETE FROM context_sentences WHERE id = :id")
     suspend fun deleteById(id: String)
 
-    @Query("SELECT * FROM context_sentences WHERE wordId = :wordId")
-    fun observeByWordId(wordId: String): Flow<List<ContextSentenceEntity>>
+    @Query("SELECT * FROM context_sentences WHERE entryId = :entryId")
+    fun observeByEntryId(entryId: String): Flow<List<ContextSentenceEntity>>
 
-    @Query("SELECT * FROM context_sentences WHERE wordId = :wordId")
-    suspend fun getByWordId(wordId: String): List<ContextSentenceEntity>
+    @Query("SELECT * FROM context_sentences WHERE entryId = :entryId")
+    suspend fun getByEntryId(entryId: String): List<ContextSentenceEntity>
 }

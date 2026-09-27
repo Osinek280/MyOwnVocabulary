@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myownvocabulary.data.word.PartOfSpeech
+import com.example.myownvocabulary.data.entry.PartOfSpeech
 
 @Composable
 fun posColor(partOfSpeech: PartOfSpeech): Color {

@@ -1,4 +1,4 @@
-package com.example.myownvocabulary.data.word
+package com.example.myownvocabulary.data.entry
 
 enum class Language(val code: String, val displayName: String, val flagEmoji: String) {
     English("en", "Angielski", "🇬🇧"),

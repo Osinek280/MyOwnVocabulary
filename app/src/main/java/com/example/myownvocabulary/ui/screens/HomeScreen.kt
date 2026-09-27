@@ -38,8 +38,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.example.myownvocabulary.data.word.Language
-import com.example.myownvocabulary.model.Word
+import com.example.myownvocabulary.data.entry.Language
+import com.example.myownvocabulary.model.Entry
 import com.example.myownvocabulary.ui.components.CheckIcon
 import com.example.myownvocabulary.ui.components.ChevronRight
 import com.example.myownvocabulary.ui.components.PlusIcon
@@ -54,10 +54,10 @@ import com.example.myownvocabulary.ui.text.PolishNumeralCase
 
 @Composable
 fun HomeScreen(
-    words: List<Word>,
+    entries: List<Entry>,
     isLoading: Boolean,
     onAddClick: () -> Unit = {},
-    onWordClick: (String) -> Unit = {},
+    onEntryClick: (String) -> Unit = {},
     onToggleSelect: (String) -> Unit,
     onEnterSelection: (String) -> Unit,
     onClearSelection: () -> Unit,
@@ -70,8 +70,8 @@ fun HomeScreen(
     var languageFilter by remember { mutableStateOf<Language?>(null) }
     var kindFilter by remember { mutableStateOf<EntryKind?>(null) }
 
-    val languages = remember(words) {
-        words.map { Language.fromCode(it.languageCode) }
+    val languages = remember(entries) {
+        entries.map { Language.fromCode(it.languageCode) }
             .distinctBy { it.code }
             .sortedBy { it.displayName }
     }
@@ -79,13 +79,10 @@ fun HomeScreen(
         languages.any { it.code == selected.code }
     }
 
-//    val filtered = words.filter {
-//        it.term.contains(search, ignoreCase = true) || it.translation.contains(search, ignoreCase = true)
-//    }
-    val filtered = words.filter { word ->
-        val matchesSearch = word.term.contains(search, ignoreCase = true) ||
-            word.translation.contains(search, ignoreCase = true)
-        val matchesLanguage = activeLanguage == null || word.languageCode == activeLanguage.code
+    val filtered = entries.filter { entry ->
+        val matchesSearch = entry.term.contains(search, ignoreCase = true) ||
+            entry.translation.contains(search, ignoreCase = true)
+        val matchesLanguage = activeLanguage == null || entry.languageCode == activeLanguage.code
         matchesSearch && matchesLanguage
     }
 
@@ -157,7 +154,7 @@ fun HomeScreen(
                 )
             }
 
-            words.isEmpty() -> {
+            entries.isEmpty() -> {
                 EmptyVocabularyState(onAddClick = onAddClick)
             }
 
@@ -233,23 +230,23 @@ fun HomeScreen(
                         contentPadding = PaddingValues(bottom = 12.dp),
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        items(filtered, key = { it.id }) { word ->
-                            WordRow(
-                                word = word,
+                        items(filtered, key = { it.id }) { entry ->
+                            EntryRow(
+                                entry = entry,
                                 isSelectionMode = inSelection,
-                                isSelected = word.id in selectedIds,
+                                isSelected = entry.id in selectedIds,
                                 onClick = {
                                     if (inSelection) {
-                                        onToggleSelect(word.id)
+                                        onToggleSelect(entry.id)
                                     } else {
-                                        onWordClick(word.id)
+                                        onEntryClick(entry.id)
                                     }
                                 },
                                 onLongClick = {
                                     if (inSelection) {
-                                        onToggleSelect(word.id)
+                                        onToggleSelect(entry.id)
                                     } else {
-                                        onEnterSelection(word.id)
+                                        onEnterSelection(entry.id)
                                     }
                                 }
                             )
@@ -327,17 +324,17 @@ private fun SelectionChip(label: String, onClick: () -> Unit, containerColor: Co
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun WordRow(
-    word: Word,
+private fun EntryRow(
+    entry: Entry,
     isSelectionMode: Boolean,
     isSelected: Boolean,
     onClick: () -> Unit,
     onLongClick: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val badgeColor = posColor(word.partOfSpeech)
+    val badgeColor = posColor(entry.partOfSpeech)
 
-    val language = Language.fromCode(word.languageCode)
+    val language = Language.fromCode(entry.languageCode)
 
     Row(
         modifier = Modifier
@@ -367,9 +364,9 @@ private fun WordRow(
                 fontSize = 12.sp,
                 modifier = Modifier
             )
-            Text(word.term, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = colors.onSurface)
+            Text(entry.term, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = colors.onSurface)
             Text(
-                word.partOfSpeech.badgeLabel(),
+                entry.partOfSpeech.badgeLabel(),
                 fontSize = 10.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = badgeColor,
@@ -383,7 +380,7 @@ private fun WordRow(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(word.translation, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = colors.outline)
+            Text(entry.translation, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = colors.outline)
             if (isSelected) {
                 CheckIcon(color = colors.primary)
             } else if (!isSelectionMode) {

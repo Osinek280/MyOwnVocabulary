@@ -18,9 +18,9 @@ fun ContextSentenceEntity.toModel() = ContextSentence(
     highlights = highlights
 )
 
-fun ContextSentence.toEntity(wordId: String) = ContextSentenceEntity(
+fun ContextSentence.toEntity(entryId: String) = ContextSentenceEntity(
     id = id.ifBlank { UUID.randomUUID().toString() },
-    wordId = wordId,
+    entryId = entryId,
     sentence = sentence.trim(),
     translation = translation.trim(),
     highlights = highlights

@@ -35,8 +35,8 @@ fun BottomNav(currentRoute: String, onNavigate: (String) -> Unit) {
     ) {
         NavItem(
             label = "Lista",
-            selected = currentRoute == Routes.WORDS,
-            onClick = { onNavigate(Routes.WORDS) }
+            selected = currentRoute == Routes.ENTRIES,
+            onClick = { onNavigate(Routes.ENTRIES) }
         ) { color -> ListIcon(color) }
         NavItem(
             label = "Nauka",

@@ -47,10 +47,10 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myownvocabulary.data.context.TextSpan
-import com.example.myownvocabulary.data.word.Language
-import com.example.myownvocabulary.data.word.PartOfSpeech
+import com.example.myownvocabulary.data.entry.Language
+import com.example.myownvocabulary.data.entry.PartOfSpeech
 import com.example.myownvocabulary.model.ContextSentence
-import com.example.myownvocabulary.model.Word
+import com.example.myownvocabulary.model.Entry
 import com.example.myownvocabulary.ui.components.BackButton
 import com.example.myownvocabulary.ui.components.ContextCard
 import com.example.myownvocabulary.ui.components.ContextStep
@@ -61,9 +61,9 @@ import com.example.myownvocabulary.ui.components.SectionLabel
 import java.util.UUID
 
 @Composable
-fun WordDetailScreen(
-    word: Word =
-        Word(
+fun EntryDetailScreen(
+    entry: Entry =
+        Entry(
             id = "",
             term = "",
             translation = "",
@@ -71,7 +71,7 @@ fun WordDetailScreen(
             partOfSpeech = PartOfSpeech.Noun
         ),
     initialContexts: List<ContextSentence>,
-    words: List<Word>,
+    entries: List<Entry>,
     onBack: () -> Unit = {},
     onSave: (String, String, PartOfSpeech, String, List<ContextSentence>) -> Unit,
     recentLanguages: List<Language> = emptyList(),
@@ -79,25 +79,25 @@ fun WordDetailScreen(
     onClearRecent: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
-    val isNew = word.id.isEmpty()
+    val isNew = entry.id.isEmpty()
 
-    var term by remember(word.id) { mutableStateOf(word.term) }
-    var translation by remember(word.id) { mutableStateOf(word.translation) }
-    var pos by remember(word.id) { mutableStateOf(word.partOfSpeech) }
-    var language by remember(word.id) {
+    var term by remember(entry.id) { mutableStateOf(entry.term) }
+    var translation by remember(entry.id) { mutableStateOf(entry.translation) }
+    var pos by remember(entry.id) { mutableStateOf(entry.partOfSpeech) }
+    var language by remember(entry.id) {
         mutableStateOf(
             if (isNew) {
-                recentLanguages.firstOrNull() ?: Language.fromCode(word.languageCode)
+                recentLanguages.firstOrNull() ?: Language.fromCode(entry.languageCode)
             } else {
-                Language.fromCode(word.languageCode)
+                Language.fromCode(entry.languageCode)
             }
         )
     }
 
-    var contexts by remember(word.id) { mutableStateOf(initialContexts) }
-    var removedIds by remember(word.id) { mutableStateOf(emptySet<String>()) }
+    var contexts by remember(entry.id) { mutableStateOf(initialContexts) }
+    var removedIds by remember(entry.id) { mutableStateOf(emptySet<String>()) }
     val visibleContexts = contexts.filter { it.id !in removedIds }
-    var editingId by remember(word.id) { mutableStateOf<String?>(null) }
+    var editingId by remember(entry.id) { mutableStateOf<String?>(null) }
 
     var step by remember { mutableStateOf(ContextStep.Idle) }
     var sentenceDraft by remember { mutableStateOf("") }
@@ -107,13 +107,13 @@ fun WordDetailScreen(
     val normalizedTerm = term.trim()
     val normalizedTranslation = translation.trim()
 
-    val termTaken = words.any {
-        it.id != word.id &&
+    val termTaken = entries.any {
+        it.id != entry.id &&
             it.languageCode == language.code &&
             it.term.equals(normalizedTerm, ignoreCase = true)
     }
-    val translationTaken = words.any {
-        it.id != word.id &&
+    val translationTaken = entries.any {
+        it.id != entry.id &&
             it.languageCode == language.code &&
             it.translation.equals(normalizedTranslation, ignoreCase = true)
     }

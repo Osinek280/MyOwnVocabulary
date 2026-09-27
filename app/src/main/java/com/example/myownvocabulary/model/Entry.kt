@@ -1,9 +1,9 @@
 package com.example.myownvocabulary.model
 
-import com.example.myownvocabulary.data.word.PartOfSpeech
-import com.example.myownvocabulary.data.word.WordEntity
+import com.example.myownvocabulary.data.entry.EntryEntity
+import com.example.myownvocabulary.data.entry.PartOfSpeech
 
-data class Word(
+data class Entry(
     val id: String,
     val term: String,
     val translation: String,
@@ -11,7 +11,7 @@ data class Word(
     val partOfSpeech: PartOfSpeech
 )
 
-fun WordEntity.toModel() = Word(
+fun EntryEntity.toModel() = Entry(
     id = id,
     term = term,
     translation = translation,

@@ -24,10 +24,10 @@ import androidx.navigation.navArgument
 import com.example.myownvocabulary.data.AppDatabase
 import com.example.myownvocabulary.data.prefs.UserPreferences
 import com.example.myownvocabulary.model.ContextSentence
+import com.example.myownvocabulary.ui.components.states.EntryNotFoundState
 import com.example.myownvocabulary.ui.components.states.LoadingState
-import com.example.myownvocabulary.ui.components.states.WordNotFoundState
+import com.example.myownvocabulary.ui.screens.EntryDetailScreen
 import com.example.myownvocabulary.ui.screens.HomeScreen
-import com.example.myownvocabulary.ui.screens.WordDetailScreen
 import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModel
 import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModelFactory
 
@@ -48,7 +48,7 @@ fun VocabularyNavHost() {
     val viewModel: VocabularyViewModel = viewModel(
         factory = remember {
             VocabularyViewModelFactory(
-                dao = AppDatabase.getInstance(context.applicationContext).wordDao(),
+                dao = AppDatabase.getInstance(context.applicationContext).entryDao(),
                 contextDao = AppDatabase.getInstance(context.applicationContext).contextSentenceDao(),
                 userPreferences = UserPreferences(appContext)
             )
@@ -63,7 +63,7 @@ fun VocabularyNavHost() {
         bottomBar = {
             if (currentRoute in Routes.Tabs) {
                 BottomNav(
-                    currentRoute = currentRoute ?: Routes.WORDS,
+                    currentRoute = currentRoute ?: Routes.ENTRIES,
                     onNavigate = onTabSelected
                 )
             }
@@ -71,16 +71,16 @@ fun VocabularyNavHost() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Routes.WORDS,
+            startDestination = Routes.ENTRIES,
             modifier = Modifier.padding(innerPadding)
         ) {
-            composable(Routes.WORDS) {
+            composable(Routes.ENTRIES) {
                 val selectedIds by viewModel.selectedIds.collectAsStateWithLifecycle()
                 HomeScreen(
-                    words = uiState.words,
+                    entries = uiState.entries,
                     isLoading = uiState.isLoading,
-                    onAddClick = { navController.navigate(Routes.ADD_WORD) },
-                    onWordClick = { wordId -> navController.navigate(Routes.wordDetail(wordId)) },
+                    onAddClick = { navController.navigate(Routes.ADD_ENTRY) },
+                    onEntryClick = { entryId -> navController.navigate(Routes.entryDetail(entryId)) },
                     onToggleSelect = viewModel::toggleSelection,
                     onEnterSelection = viewModel::enterSelection,
                     onClearSelection = viewModel::clearSelection,
@@ -97,9 +97,9 @@ fun VocabularyNavHost() {
                 Text("Settings Page")
             }
 
-            composable(Routes.ADD_WORD) {
-                WordDetailScreen(
-                    words = uiState.words,
+            composable(Routes.ADD_ENTRY) {
+                EntryDetailScreen(
+                    entries = uiState.entries,
                     initialContexts = emptyList(),
                     recentLanguages = recentLanguages,
                     onBack = { navController.popBackStack() },
@@ -113,26 +113,26 @@ fun VocabularyNavHost() {
             }
 
             composable(
-                Routes.WORD_DETAIL,
-                arguments = listOf(navArgument("wordId") { type = NavType.StringType })
-            ) { entry ->
-                val wordId = entry.arguments?.getString("wordId")
-                val word = uiState.words.find { it.id == wordId }
+                Routes.ENTRY_DETAIL,
+                arguments = listOf(navArgument("entryId") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val entryId = backStackEntry.arguments?.getString("entryId")
+                val entry = uiState.entries.find { it.id == entryId }
 
-                val contexts by produceState<List<ContextSentence>?>(null, wordId) {
-                    value = if (wordId == null) emptyList() else viewModel.loadContexts(wordId)
+                val contexts by produceState<List<ContextSentence>?>(null, entryId) {
+                    value = if (entryId == null) emptyList() else viewModel.loadContexts(entryId)
                 }
 
                 val loadedContexts = contexts
 
                 when {
-                    word != null && loadedContexts != null -> {
-                        WordDetailScreen(
-                            word = word,
+                    entry != null && loadedContexts != null -> {
+                        EntryDetailScreen(
+                            entry = entry,
                             initialContexts = loadedContexts,
-                            words = uiState.words,
+                            entries = uiState.entries,
                             onSave = { term, translation, pos, languageCode, contexts ->
-                                viewModel.save(id = word.id, term, translation, pos, languageCode, contexts)
+                                viewModel.save(id = entry.id, term, translation, pos, languageCode, contexts)
                                 navController.popBackStack()
                             },
                             recentLanguages = recentLanguages,
@@ -145,7 +145,7 @@ fun VocabularyNavHost() {
                         LoadingState(modifier = Modifier.fillMaxSize())
                     }
                     else -> {
-                        WordNotFoundState(onBack = { navController.popBackStack() })
+                        EntryNotFoundState(onBack = { navController.popBackStack() })
                     }
                 }
             }
