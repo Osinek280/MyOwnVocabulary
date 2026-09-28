@@ -57,7 +57,7 @@ import com.example.myownvocabulary.ui.text.PolishNumeralCase
 fun HomeScreen(
     entries: List<Entry>,
     isLoading: Boolean,
-    onAddClick: () -> Unit = {},
+    onAddClick: (EntryKind) -> Unit = {},
     onEntryClick: (String) -> Unit = {},
     onToggleSelect: (String) -> Unit,
     onEnterSelection: (String) -> Unit,
@@ -89,6 +89,8 @@ fun HomeScreen(
     }
 
     var pendingDelete by remember { mutableStateOf(false) }
+
+    var addMenuOpen by remember { mutableStateOf(false) }
 
     BackHandler(enabled = selectedIds.isNotEmpty()) {
         onClearSelection()
@@ -130,15 +132,32 @@ fun HomeScreen(
                     fontWeight = FontWeight.Bold,
                     color = colors.onBackground
                 )
-                Box(
-                    modifier = Modifier
-                        .size(36.dp)
-                        .clip(CircleShape)
-                        .background(colors.primary)
-                        .clickable(onClick = onAddClick),
-                    contentAlignment = Alignment.Center
-                ) {
-                    PlusIcon()
+                Box {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .clip(CircleShape)
+                            .background(colors.primary)
+                            .clickable { addMenuOpen = true },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        PlusIcon()
+                    }
+                    DropdownMenu(
+                        expanded = addMenuOpen,
+                        onDismissRequest = { addMenuOpen = false },
+                        shape = RoundedCornerShape(16.dp)
+                    ) {
+                        EntryKind.entries.forEach { kind ->
+                            DropdownMenuItem(
+                                text = { Text("${kind.icon} ${kind.singularLabel}") },
+                                onClick = {
+                                    addMenuOpen = false
+                                    onAddClick(kind)
+                                }
+                            )
+                        }
+                    }
                 }
             }
             SearchBar(
@@ -157,7 +176,7 @@ fun HomeScreen(
             }
 
             entries.isEmpty() -> {
-                EmptyVocabularyState(onAddClick = onAddClick)
+                EmptyVocabularyState(onAddClick = { onAddClick(EntryKind.Word) })
             }
 
             else -> {
@@ -214,9 +233,11 @@ fun HomeScreen(
                                     }
                                 )
                                 FilterMenu(
-                                    label = kindFilter?.label ?: "Wszystkie typy",
+                                    label = kindFilter?.let { "${it.icon} ${it.pluralLabel}" } ?: "Wszystkie typy",
                                     options = listOf<EntryKind?>(null) + EntryKind.entries,
-                                    optionLabel = { kind -> kind?.label ?: "Wszystkie" },
+                                    optionLabel = { kind ->
+                                        kind?.let { "${it.icon} ${it.pluralLabel}" } ?: "Wszystkie"
+                                    },
                                     onSelect = { selected ->
                                         kindFilter = selected
                                         onClearSelection()
@@ -281,7 +302,8 @@ private fun <T> FilterMenu(label: String, options: List<T>, optionLabel: (T) -> 
         )
         DropdownMenu(
             expanded = expanded,
-            onDismissRequest = { expanded = false }
+            onDismissRequest = { expanded = false },
+            shape = RoundedCornerShape(16.dp)
         ) {
             options.forEach { option ->
                 DropdownMenuItem(

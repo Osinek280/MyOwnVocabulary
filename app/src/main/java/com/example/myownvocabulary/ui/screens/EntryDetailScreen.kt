@@ -139,7 +139,7 @@ fun EntryDetailScreen(
         ) {
             BackButton(onPress = onBack)
             Text(
-                if (isNew) "Dodaj nowe wyrażenie" else "Edytuj wyrażenie",
+                "${if (isNew) "Dodaj" else "Edytuj"} ${entry.kind.singularLabel} ${entry.kind.icon}",
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold,
                 color = colors.onBackground

@@ -22,8 +22,11 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.example.myownvocabulary.data.AppDatabase
+import com.example.myownvocabulary.data.entry.EntryKind
+import com.example.myownvocabulary.data.entry.PartOfSpeech
 import com.example.myownvocabulary.data.prefs.UserPreferences
 import com.example.myownvocabulary.model.ContextSentence
+import com.example.myownvocabulary.model.Entry
 import com.example.myownvocabulary.ui.components.states.EntryNotFoundState
 import com.example.myownvocabulary.ui.components.states.LoadingState
 import com.example.myownvocabulary.ui.screens.EntryDetailScreen
@@ -79,7 +82,7 @@ fun VocabularyNavHost() {
                 HomeScreen(
                     entries = uiState.entries,
                     isLoading = uiState.isLoading,
-                    onAddClick = { navController.navigate(Routes.ADD_ENTRY) },
+                    onAddClick = { kind -> navController.navigate(Routes.addEntry(kind)) },
                     onEntryClick = { entryId -> navController.navigate(Routes.entryDetail(entryId)) },
                     onToggleSelect = viewModel::toggleSelection,
                     onEnterSelection = viewModel::enterSelection,
@@ -97,8 +100,23 @@ fun VocabularyNavHost() {
                 Text("Settings Page")
             }
 
-            composable(Routes.ADD_ENTRY) {
+            composable(
+                Routes.ADD_ENTRY,
+                arguments = listOf(navArgument("kind") { type = NavType.StringType })
+            ) { backStackEntry ->
+                val kind = EntryKind.valueOf(
+                    backStackEntry.arguments?.getString("kind") ?: EntryKind.Word.name
+                )
+
                 EntryDetailScreen(
+                    entry = Entry(
+                        id = "",
+                        term = "",
+                        translation = "",
+                        languageCode = "en",
+                        partOfSpeech = PartOfSpeech.Noun,
+                        kind = kind
+                    ),
                     entries = uiState.entries,
                     initialContexts = emptyList(),
                     recentLanguages = recentLanguages,

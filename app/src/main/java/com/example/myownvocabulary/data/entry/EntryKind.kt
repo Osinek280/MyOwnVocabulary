@@ -1,8 +1,24 @@
 package com.example.myownvocabulary.data.entry
 
-enum class EntryKind(val label: String) {
-    Word("\uD83D\uDCDD Słowa"),
-    Expression("\uD83D\uDCAC Wyrażenia"),
-    Idiom("\uD83E\uDDE9 Idiomy"),
-    Sentence("\uD83D\uDCD6 Zdania")
+enum class EntryKind(val singularLabel: String, val pluralLabel: String, val icon: String) {
+    Word(
+        "Słowo",
+        "Słowa",
+        "\uD83D\uDCDD" // 📝
+    ),
+    Expression(
+        "Wyrażenie",
+        "Wyrażenia",
+        "\uD83D\uDCAC" // 💬
+    ),
+    Idiom(
+        "Idiom",
+        "Idiomy",
+        "\uD83E\uDDE9" // 🧩
+    ),
+    Sentence(
+        "Zdanie",
+        "Zdania",
+        "\uD83D\uDCD6 " // 📖
+    )
 }
