@@ -20,5 +20,10 @@ enum class EntryKind(val singularLabel: String, val pluralLabel: String, val ico
         "Zdanie",
         "Zdania",
         "\uD83D\uDCD6 " // 📖
+    ),
+    Numeral(
+        "Liczebnik",
+        "Liczebniki",
+        "\uD83D\uDD22" // \uD83E\uDDEE - 🧮 or 🔢
     )
 }
