@@ -22,8 +22,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -32,11 +34,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -70,11 +75,18 @@ fun TransferScreen(
 ) {
     val colors = MaterialTheme.colorScheme
     var selection by remember { mutableStateOf(TransferSelection()) }
+    var excludedIds by rememberSaveable(
+        stateSaver = listSaver<Set<String>, String>(
+            save = { it.toList() },
+            restore = { it.toSet() }
+        )
+    ) { mutableStateOf(emptySet<String>()) }
 
     val languageOptions = remember(rows) { languageOptions(rows) }
     val kindOptions = remember(rows) { kindOptions(rows) }
     val narrowed = rows.filter { selection.matches(it.languageCode, it.kind) }
-    val canConfirm = narrowed.isNotEmpty() && !busy && !isLoading
+    val chosen = narrowed.filter { it.id !in excludedIds }
+    val canConfirm = chosen.isNotEmpty() && !busy && !isLoading
 
     if (error != null) {
         AlertDialog(
@@ -158,19 +170,45 @@ fun TransferScreen(
                     }
                 }
                 item(key = "summary") {
-                    Text(
-                        when {
-                            narrowed.isEmpty() -> "Brak wpisów dla wybranych filtrów."
-                            else -> summaryLabel(narrowed)
-                        },
-                        fontSize = 12.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = colors.outline
-                    )
+                    Column {
+                        Text(
+                            when {
+                                narrowed.isEmpty() -> "Brak wpisów dla wybranych filtrów."
+                                else -> summaryLabel(narrowed)
+                            },
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = colors.outline
+                        )
+                        Text(
+                            "Zaznaczono: ${chosen.size} z ${narrowed.size}",
+                            fontSize = 12.sp,
+                            color = colors.onSurfaceVariant
+                        )
+                        Row {
+                            TextButton(
+                                enabled = !busy && chosen.size < narrowed.size,
+                                onClick = { excludedIds = excludedIds - narrowed.map { it.id }.toSet() }
+                            ) { Text("Zaznacz wszystkie") }
+                            TextButton(
+                                enabled = !busy && chosen.isNotEmpty(),
+                                onClick = { excludedIds = excludedIds + narrowed.map { it.id } }
+                            ) { Text("Odznacz wszystkie") }
+                        }
+                    }
                 }
                 items(narrowed, key = { it.id }) { row ->
                     PreviewRow(
                         row = row,
+                        selected = row.id !in excludedIds,
+                        enabled = !busy,
+                        onToggle = {
+                            excludedIds = if (row.id in excludedIds) {
+                                excludedIds - row.id
+                            } else {
+                                excludedIds + row.id
+                            }
+                        },
                         status = if (!showImportStatus) {
                             null
                         } else if (row.id in existingIds) {
@@ -191,7 +229,7 @@ fun TransferScreen(
                 .clip(RoundedCornerShape(14.dp))
                 .background(if (canConfirm || busy) colors.primary else colors.surfaceVariant)
                 .clickable(enabled = canConfirm) {
-                    onConfirm(narrowed.map { it.id })
+                    onConfirm(chosen.map { it.id })
                 },
             contentAlignment = Alignment.Center
         ) {
@@ -339,7 +377,13 @@ private fun SelectChip(label: String, selected: Boolean, onClick: () -> Unit) {
 }
 
 @Composable
-private fun PreviewRow(row: TransferPreview, status: String?) {
+private fun PreviewRow(
+    row: TransferPreview,
+    selected: Boolean,
+    enabled: Boolean,
+    onToggle: () -> Unit,
+    status: String?
+) {
     val colors = MaterialTheme.colorScheme
     val knownLanguage = Language.entries.find { it.code.equals(row.languageCode, ignoreCase = true) }
     val badgeColor = posColor(row.partOfSpeech)
@@ -349,6 +393,12 @@ private fun PreviewRow(row: TransferPreview, status: String?) {
             .fillMaxWidth()
             .clip(RoundedCornerShape(16.dp))
             .background(colors.surfaceVariant)
+            .toggleable(
+                value = selected,
+                enabled = enabled,
+                role = Role.Checkbox,
+                onValueChange = { onToggle() }
+            )
             .padding(horizontal = 16.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically
@@ -404,6 +454,7 @@ private fun PreviewRow(row: TransferPreview, status: String?) {
                     .padding(horizontal = 8.dp, vertical = 4.dp)
             )
         }
+        Checkbox(checked = selected, onCheckedChange = null, enabled = enabled)
     }
 }
 
