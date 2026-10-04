@@ -1,4 +1,4 @@
-package com.example.myownvocabulary.ui.components
+package com.example.myownvocabulary.ui.components.quiz
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
