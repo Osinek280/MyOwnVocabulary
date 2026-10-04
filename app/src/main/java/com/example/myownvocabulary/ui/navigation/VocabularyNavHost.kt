@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -37,6 +36,7 @@ import com.example.myownvocabulary.ui.components.states.EntryNotFoundState
 import com.example.myownvocabulary.ui.components.states.LoadingState
 import com.example.myownvocabulary.ui.screens.EntryDetailScreen
 import com.example.myownvocabulary.ui.screens.HomeScreen
+import com.example.myownvocabulary.ui.screens.QuizScreen
 import com.example.myownvocabulary.ui.screens.SettingsScreen
 import com.example.myownvocabulary.ui.screens.TransferScreen
 import com.example.myownvocabulary.ui.viewmodel.TransferViewModel
@@ -128,7 +128,9 @@ fun VocabularyNavHost() {
             }
 
             composable(Routes.LEARN) {
-                Text("Learn Page")
+                QuizScreen(
+                    onBack = { navController.popBackStack() }
+                )
             }
 
             composable(Routes.SETTINGS) {
