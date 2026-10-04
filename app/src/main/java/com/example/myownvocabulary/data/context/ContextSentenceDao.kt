@@ -19,4 +19,10 @@ interface ContextSentenceDao {
 
     @Query("SELECT * FROM context_sentences WHERE entryId = :entryId")
     suspend fun getByEntryId(entryId: String): List<ContextSentenceEntity>
+
+    @Query("SELECT * FROM context_sentences WHERE entryId IN (:entryIds)")
+    suspend fun getByEntryIds(entryIds: List<String>): List<ContextSentenceEntity>
+
+    @Query("DELETE FROM context_sentences WHERE entryId = :entryId")
+    suspend fun deleteByEntryId(entryId: String)
 }

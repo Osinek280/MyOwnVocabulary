@@ -13,5 +13,10 @@ object Routes {
     const val ADD_ENTRY = "add_entry/{kind}"
     fun addEntry(kind: EntryKind) = "add_entry/${kind.name}"
 
+    const val TRANSFER = "transfer/{mode}"
+    const val TRANSFER_EXPORT = "export"
+    const val TRANSFER_IMPORT = "import"
+    fun transfer(mode: String) = "transfer/$mode"
+
     val Tabs = setOf(ENTRIES, LEARN, SETTINGS)
 }

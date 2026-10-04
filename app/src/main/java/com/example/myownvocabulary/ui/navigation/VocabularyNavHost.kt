@@ -1,11 +1,15 @@
 package com.example.myownvocabulary.ui.navigation
 
+import androidx.activity.compose.BackHandler
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
@@ -25,12 +29,18 @@ import com.example.myownvocabulary.data.AppDatabase
 import com.example.myownvocabulary.data.entry.EntryKind
 import com.example.myownvocabulary.data.entry.PartOfSpeech
 import com.example.myownvocabulary.data.prefs.UserPreferences
+import com.example.myownvocabulary.data.transfer.TransferPreview
+import com.example.myownvocabulary.data.transfer.toPreview
 import com.example.myownvocabulary.model.ContextSentence
 import com.example.myownvocabulary.model.Entry
 import com.example.myownvocabulary.ui.components.states.EntryNotFoundState
 import com.example.myownvocabulary.ui.components.states.LoadingState
 import com.example.myownvocabulary.ui.screens.EntryDetailScreen
 import com.example.myownvocabulary.ui.screens.HomeScreen
+import com.example.myownvocabulary.ui.screens.SettingsScreen
+import com.example.myownvocabulary.ui.screens.TransferScreen
+import com.example.myownvocabulary.ui.viewmodel.TransferViewModel
+import com.example.myownvocabulary.ui.viewmodel.TransferViewModelFactory
 import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModel
 import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModelFactory
 
@@ -48,17 +58,42 @@ fun VocabularyNavHost() {
 
     val context = LocalContext.current
     val appContext = context.applicationContext
+    val database = remember { AppDatabase.getInstance(appContext) }
     val viewModel: VocabularyViewModel = viewModel(
         factory = remember {
             VocabularyViewModelFactory(
-                dao = AppDatabase.getInstance(context.applicationContext).entryDao(),
-                contextDao = AppDatabase.getInstance(context.applicationContext).contextSentenceDao(),
+                dao = database.entryDao(),
+                contextDao = database.contextSentenceDao(),
                 userPreferences = UserPreferences(appContext)
+            )
+        }
+    )
+    val transferViewModel: TransferViewModel = viewModel(
+        factory = remember {
+            TransferViewModelFactory(
+                database = database,
+                dao = database.entryDao(),
+                contextDao = database.contextSentenceDao()
             )
         }
     )
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val recentLanguages by viewModel.recentLanguages.collectAsStateWithLifecycle()
+    val transfer by transferViewModel.transfer.collectAsStateWithLifecycle()
+
+    val exportLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.CreateDocument("application/json")
+    ) { uri ->
+        if (uri != null) transferViewModel.exportStaged(uri, context.contentResolver)
+    }
+    val importLauncher = rememberLauncherForActivityResult(
+        ActivityResultContracts.OpenDocument()
+    ) { uri ->
+        if (uri != null) {
+            transferViewModel.beginImport(uri, context.contentResolver)
+            navController.navigate(Routes.transfer(Routes.TRANSFER_IMPORT))
+        }
+    }
 
     Scaffold(
         containerColor = colors.background,
@@ -97,7 +132,74 @@ fun VocabularyNavHost() {
             }
 
             composable(Routes.SETTINGS) {
-                Text("Settings Page")
+                SettingsScreen(
+                    canExport = uiState.entries.isNotEmpty() && !uiState.isLoading,
+                    error = transfer.error,
+                    result = transfer.result,
+                    onExport = { navController.navigate(Routes.transfer(Routes.TRANSFER_EXPORT)) },
+                    onImport = {
+                        importLauncher.launch(arrayOf("application/json", "text/plain", "*/*"))
+                    },
+                    onDismissFeedback = transferViewModel::acknowledgeTransferFeedback
+                )
+            }
+
+            composable(
+                Routes.TRANSFER,
+                arguments = listOf(navArgument("mode") { type = NavType.StringType })
+            ) { entry ->
+                val importing = entry.arguments?.getString("mode") == Routes.TRANSFER_IMPORT
+                val rows = if (importing) {
+                    transfer.importPreview.orEmpty().mapNotNull { it.toPreview() }
+                } else {
+                    uiState.entries.map { it.toTransferPreview() }
+                }
+                val existingIds = remember(uiState.entries) { uiState.entries.map { it.id }.toSet() }
+                val loadFailed = importing &&
+                    transfer.importPreview == null &&
+                    !transfer.busy &&
+                    transfer.error != null
+
+                BackHandler(enabled = importing) {
+                    transferViewModel.discardImport()
+                    navController.popBackStack()
+                }
+                LaunchedEffect(transfer.result) {
+                    if (transfer.result != null &&
+                        navController.currentDestination?.route == Routes.TRANSFER
+                    ) {
+                        navController.popBackStack()
+                    }
+                }
+                LaunchedEffect(loadFailed) {
+                    if (loadFailed && navController.currentDestination?.route == Routes.TRANSFER) {
+                        navController.popBackStack()
+                    }
+                }
+
+                TransferScreen(
+                    title = if (importing) "Import" else "Eksport",
+                    confirmLabel = if (importing) "Importuj" else "Zapisz plik",
+                    rows = rows,
+                    existingIds = existingIds,
+                    showImportStatus = importing,
+                    isLoading = importing && transfer.importPreview == null && transfer.error == null,
+                    busy = transfer.busy,
+                    error = if (importing && transfer.importPreview == null) null else transfer.error,
+                    onBack = {
+                        if (importing) transferViewModel.discardImport()
+                        navController.popBackStack()
+                    },
+                    onConfirm = { ids ->
+                        if (importing) {
+                            transferViewModel.importSelected(ids)
+                        } else {
+                            transferViewModel.stageExport(ids)
+                            exportLauncher.launch("vocabulary.json")
+                        }
+                    },
+                    onDismissError = transferViewModel::dismissTransferError
+                )
             }
 
             composable(
@@ -170,6 +272,15 @@ fun VocabularyNavHost() {
         }
     }
 }
+
+private fun Entry.toTransferPreview() = TransferPreview(
+    id = id,
+    term = term,
+    translation = translation,
+    languageCode = languageCode,
+    kind = kind,
+    partOfSpeech = partOfSpeech
+)
 
 private fun NavHostController.navigateToTab(route: String) {
     navigate(route) {

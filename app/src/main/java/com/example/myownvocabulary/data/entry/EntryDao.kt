@@ -17,6 +17,9 @@ interface EntryDao {
     @Query("SELECT * FROM entries WHERE id = :id")
     suspend fun getById(id: String): EntryEntity?
 
+    @Query("SELECT * FROM entries WHERE id IN (:ids)")
+    suspend fun getByIds(ids: List<String>): List<EntryEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(entry: EntryEntity)
 
