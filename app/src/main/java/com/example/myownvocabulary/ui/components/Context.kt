@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.ime
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.relocation.BringIntoViewRequester
+import androidx.compose.foundation.relocation.BringIntoViewResponder
 import androidx.compose.foundation.relocation.bringIntoViewRequester
+import androidx.compose.foundation.relocation.bringIntoViewResponder
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.material.icons.Icons
@@ -37,12 +39,16 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.focus.onFocusChanged
+import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
@@ -50,10 +56,14 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myownvocabulary.data.context.TextSpan
 import com.example.myownvocabulary.model.ContextSentence
+import kotlinx.coroutines.flow.conflate
+import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filter
 
 enum class ContextStep { Idle, Sentence, Translation, Highlight }
 
@@ -194,14 +204,37 @@ fun AddContextCard(
 ) {
     val colors = MaterialTheme.colorScheme
     val bringIntoViewRequester = remember { BringIntoViewRequester() }
-    val imeBottom = WindowInsets.ime.getBottom(LocalDensity.current)
-    LaunchedEffect(imeBottom) {
-        if (imeBottom > 0) bringIntoViewRequester.bringIntoView()
+    var cardSize by remember { mutableStateOf(IntSize.Zero) }
+    val cardResponder = remember {
+        object : BringIntoViewResponder {
+            override fun calculateRectForParent(localRect: Rect): Rect =
+                Rect(0f, 0f, cardSize.width.toFloat(), cardSize.height.toFloat())
+
+            // The card does not scroll internally; its parent reveals the whole card.
+            override suspend fun bringChildIntoView(localRect: () -> Rect?) = Unit
+        }
+    }
+    val imeInsets = WindowInsets.ime
+    val density = LocalDensity.current
+    var isFocused by remember { mutableStateOf(false) }
+    LaunchedEffect(isFocused, imeInsets, density) {
+        if (!isFocused) return@LaunchedEffect
+
+        // Follow viewport resizing without cancelling an in-flight scroll.
+        // Keep the latest IME height so the final request reveals the whole card.
+        bringIntoViewRequester.bringIntoView()
+        snapshotFlow { imeInsets.getBottom(density) }
+            .distinctUntilChanged()
+            .filter { it > 0 }
+            .conflate()
+            .collect { bringIntoViewRequester.bringIntoView() }
     }
 
     Column(
         modifier = Modifier
             .bringIntoViewRequester(bringIntoViewRequester)
+            .onSizeChanged { cardSize = it }
+            .bringIntoViewResponder(cardResponder)
             .padding(bottom = 12.dp)
             .fillMaxWidth()
             .border(2.dp, colors.primary, RoundedCornerShape(16.dp))
@@ -220,7 +253,9 @@ fun AddContextCard(
             onValueChange = onDraftChange,
             textStyle = fieldStyle,
             cursorBrush = SolidColor(colors.primary),
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { isFocused = it.isFocused },
             minLines = 2,
             decorationBox = { inner ->
                 Box(Modifier.fillMaxWidth()) {
