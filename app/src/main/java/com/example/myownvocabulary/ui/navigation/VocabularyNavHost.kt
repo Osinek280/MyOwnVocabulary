@@ -33,8 +33,10 @@ import com.example.myownvocabulary.data.entry.PartOfSpeech
 import com.example.myownvocabulary.data.prefs.UserPreferences
 import com.example.myownvocabulary.data.transfer.TransferPreview
 import com.example.myownvocabulary.data.transfer.toPreview
+import com.example.myownvocabulary.domain.quiz.QuizQuestionGenerator
 import com.example.myownvocabulary.model.ContextSentence
 import com.example.myownvocabulary.model.Entry
+import com.example.myownvocabulary.ui.components.states.EmptyVocabularyState
 import com.example.myownvocabulary.ui.components.states.EntryNotFoundState
 import com.example.myownvocabulary.ui.components.states.LoadingState
 import com.example.myownvocabulary.ui.screens.EntryDetailScreen
@@ -46,58 +48,6 @@ import com.example.myownvocabulary.ui.viewmodel.TransferViewModel
 import com.example.myownvocabulary.ui.viewmodel.TransferViewModelFactory
 import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModel
 import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModelFactory
-
-enum class QuizMode { CHOOSE, TYPE }
-
-data class QuizQuestion(
-    val prompt: String,
-    val correctAnswer: String,
-    val options: List<String> = emptyList(),
-    val mode: QuizMode = QuizMode.CHOOSE
-)
-
-val questions: List<QuizQuestion> = listOf(
-    QuizQuestion(
-        prompt = "adres pocztowy",
-        correctAnswer = "address postal",
-        options = listOf("address email", "date of birth", "place of birth", "address postal")
-    ),
-    QuizQuestion(
-        prompt = "wygodny niewygodny",
-        correctAnswer = "comfortable uncomfortable",
-        mode = QuizMode.TYPE
-    ),
-    QuizQuestion(
-        prompt = "zameldowanie",
-        correctAnswer = "check-in",
-        options = listOf("check-out", "check-in", "booking", "reception")
-    ),
-    QuizQuestion(
-        prompt = "lotnisko",
-        correctAnswer = "airport",
-        options = listOf("harbour", "station", "airport", "terminal")
-    ),
-    QuizQuestion(
-        prompt = "bagaż podręczny",
-        correctAnswer = "hand luggage",
-        mode = QuizMode.TYPE
-    ),
-    QuizQuestion(
-        prompt = "wynajmować",
-        correctAnswer = "to rent",
-        options = listOf("to rent", "to borrow", "to lend", "to owe")
-    ),
-    QuizQuestion(
-        prompt = "spóźniony",
-        correctAnswer = "late",
-        mode = QuizMode.TYPE
-    ),
-    QuizQuestion(
-        prompt = "umowa",
-        correctAnswer = "contract",
-        options = listOf("contact", "contract", "contrast", "content")
-    )
-)
 
 @Composable
 fun VocabularyNavHost() {
@@ -183,21 +133,38 @@ fun VocabularyNavHost() {
             }
 
             composable(Routes.LEARN) {
-                var questionIndex by rememberSaveable { mutableIntStateOf(0) }
                 val quizOptions by viewModel.quizOptions.collectAsStateWithLifecycle()
                 val loadedQuizOptions = quizOptions
-                if (loadedQuizOptions == null) {
+                if (loadedQuizOptions == null || uiState.isLoading) {
                     LoadingState(modifier = Modifier.fillMaxSize())
+                    return@composable
+                }
+                val quizQuestions = remember(
+                    uiState.entries,
+                    loadedQuizOptions.multipleChoice,
+                    loadedQuizOptions.written
+                ) {
+                    QuizQuestionGenerator.generate(uiState.entries, loadedQuizOptions)
+                }
+                var questionIndex by rememberSaveable(
+                    uiState.entries,
+                    loadedQuizOptions.multipleChoice,
+                    loadedQuizOptions.written
+                ) { mutableIntStateOf(0) }
+                if (quizQuestions.isEmpty()) {
+                    EmptyVocabularyState(
+                        onAddClick = { navController.navigate(Routes.addEntry(EntryKind.Word)) }
+                    )
                     return@composable
                 }
                 QuizScreen(
                     quizOptions = loadedQuizOptions,
                     onQuizOptionsChange = viewModel::saveQuizOptions,
                     currentIndex = questionIndex,
-                    totalCount = questions.size,
-                    question = questions[questionIndex],
+                    totalCount = quizQuestions.size,
+                    question = quizQuestions[questionIndex.coerceIn(quizQuestions.indices)],
                     onNextQuestion = {
-                        if (questionIndex < questions.lastIndex) {
+                        if (questionIndex < quizQuestions.lastIndex) {
                             questionIndex++
                         } else {
                             questionIndex = 0

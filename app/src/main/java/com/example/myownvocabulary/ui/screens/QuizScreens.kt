@@ -47,12 +47,16 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.example.myownvocabulary.data.entry.Language
+import com.example.myownvocabulary.domain.quiz.QuizAnswerMatcher
+import com.example.myownvocabulary.domain.quiz.QuizQuestion
 import com.example.myownvocabulary.ui.components.quiz.QuizOptions
 import com.example.myownvocabulary.ui.components.quiz.QuizOptionsSheet
 import com.example.myownvocabulary.ui.components.quiz.QuizProgressBar
-import com.example.myownvocabulary.ui.navigation.QuizQuestion
 import kotlinx.coroutines.delay
 
 @Composable
@@ -73,7 +77,7 @@ fun QuizScreen(
     }
     var answerRevealed by rememberSaveable(currentIndex, question) { mutableStateOf(false) }
     val correct = !answerRevealed &&
-        selectedAnswer?.trim()?.equals(question.correctAnswer.trim(), ignoreCase = true) == true
+        selectedAnswer?.let { QuizAnswerMatcher.matches(it, question.correctAnswer) } == true
     val incorrect = selectedAnswer != null && !correct
     val nextQuestion by rememberUpdatedState(onNextQuestion)
     LaunchedEffect(currentIndex, question, selectedAnswer, answerRevealed) {
@@ -184,13 +188,29 @@ private fun ChooseAnswerContent(
             .padding(horizontal = 20.dp)
             .padding(top = 12.dp, bottom = 24.dp)
     ) {
-        Text(
-            text = question.prompt,
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            style = MaterialTheme.typography.headlineMedium,
-            fontWeight = FontWeight.SemiBold,
-            color = colors.onBackground
-        )
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val language = Language.entries.find {
+                it.code.equals(question.languageCode, ignoreCase = true)
+            }
+            Text(
+                text = language?.flagEmoji ?: question.languageCode,
+                style = MaterialTheme.typography.headlineSmall,
+                modifier = Modifier.semantics {
+                    contentDescription = language?.displayName ?: question.languageCode
+                }
+            )
+            Text(
+                text = question.prompt,
+                modifier = Modifier.weight(1f),
+                style = MaterialTheme.typography.headlineMedium,
+                fontWeight = FontWeight.SemiBold,
+                color = colors.onBackground
+            )
+        }
 
         Spacer(Modifier.height(24.dp))
         Text(
@@ -221,7 +241,7 @@ private fun ChooseAnswerContent(
                     enabled = typedAnswer.isNotBlank(),
                     modifier = Modifier.padding(top = 12.dp)
                 ) { Text("Sprawdź") }
-            } else if (!selectedAnswer.trim().equals(question.correctAnswer.trim(), ignoreCase = true)) {
+            } else if (!QuizAnswerMatcher.matches(selectedAnswer, question.correctAnswer)) {
                 AnswerOptionCard(
                     text = typedAnswer,
                     onClick = { },
