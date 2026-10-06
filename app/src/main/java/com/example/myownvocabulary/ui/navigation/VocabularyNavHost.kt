@@ -184,7 +184,15 @@ fun VocabularyNavHost() {
 
             composable(Routes.LEARN) {
                 var questionIndex by rememberSaveable { mutableIntStateOf(0) }
+                val quizOptions by viewModel.quizOptions.collectAsStateWithLifecycle()
+                val loadedQuizOptions = quizOptions
+                if (loadedQuizOptions == null) {
+                    LoadingState(modifier = Modifier.fillMaxSize())
+                    return@composable
+                }
                 QuizScreen(
+                    quizOptions = loadedQuizOptions,
+                    onQuizOptionsChange = viewModel::saveQuizOptions,
                     currentIndex = questionIndex,
                     totalCount = questions.size,
                     question = questions[questionIndex],

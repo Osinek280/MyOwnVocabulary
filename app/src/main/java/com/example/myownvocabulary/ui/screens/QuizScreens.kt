@@ -50,7 +50,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import com.example.myownvocabulary.ui.components.quiz.QuizOptions
-import com.example.myownvocabulary.ui.components.quiz.QuizOptionsSaver
 import com.example.myownvocabulary.ui.components.quiz.QuizOptionsSheet
 import com.example.myownvocabulary.ui.components.quiz.QuizProgressBar
 import com.example.myownvocabulary.ui.navigation.QuizQuestion
@@ -61,13 +60,14 @@ fun QuizScreen(
     currentIndex: Int,
     totalCount: Int,
     question: QuizQuestion,
+    quizOptions: QuizOptions,
+    onQuizOptionsChange: (QuizOptions) -> Unit,
     onBack: () -> Unit,
     onNextQuestion: () -> Unit,
     onRestart: () -> Unit
 ) {
     val colors = MaterialTheme.colorScheme
     var optionMenuOpen by rememberSaveable { mutableStateOf(false) }
-    var quizOptions by rememberSaveable(stateSaver = QuizOptionsSaver) { mutableStateOf(QuizOptions()) }
     var selectedAnswer by rememberSaveable(currentIndex, question) {
         mutableStateOf<String?>(null)
     }
@@ -152,9 +152,7 @@ fun QuizScreen(
     if (optionMenuOpen) {
         QuizOptionsSheet(
             options = quizOptions,
-            onChange = {
-                quizOptions = it
-            },
+            onChange = onQuizOptionsChange,
             onDismiss = { optionMenuOpen = false },
             onRestart = {
                 optionMenuOpen = false

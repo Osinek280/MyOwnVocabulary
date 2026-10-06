@@ -14,6 +14,7 @@ import com.example.myownvocabulary.model.ContextSentence
 import com.example.myownvocabulary.model.Entry
 import com.example.myownvocabulary.model.toEntity
 import com.example.myownvocabulary.model.toModel
+import com.example.myownvocabulary.ui.components.quiz.QuizOptions
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -30,6 +31,19 @@ class VocabularyViewModel(
     private val contextDao: ContextSentenceDao,
     private val userPreferences: UserPreferences
 ) : ViewModel() {
+    val quizOptions: StateFlow<QuizOptions?> = userPreferences.quizOptions
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = null
+        )
+
+    fun saveQuizOptions(options: QuizOptions) {
+        viewModelScope.launch {
+            userPreferences.saveQuizOptions(options)
+        }
+    }
+
     val uiState: StateFlow<EntriesUiState> = dao.observeAll()
         .map { list ->
             EntriesUiState(
