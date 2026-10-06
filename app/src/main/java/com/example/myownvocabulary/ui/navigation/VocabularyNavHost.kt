@@ -10,8 +10,11 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,6 +46,58 @@ import com.example.myownvocabulary.ui.viewmodel.TransferViewModel
 import com.example.myownvocabulary.ui.viewmodel.TransferViewModelFactory
 import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModel
 import com.example.myownvocabulary.ui.viewmodel.VocabularyViewModelFactory
+
+enum class QuizMode { CHOOSE, TYPE }
+
+data class QuizQuestion(
+    val prompt: String,
+    val correctAnswer: String,
+    val options: List<String> = emptyList(),
+    val mode: QuizMode = QuizMode.CHOOSE
+)
+
+val questions: List<QuizQuestion> = listOf(
+    QuizQuestion(
+        prompt = "adres pocztowy",
+        correctAnswer = "address postal",
+        options = listOf("address email", "date of birth", "place of birth", "address postal")
+    ),
+    QuizQuestion(
+        prompt = "wygodny niewygodny",
+        correctAnswer = "comfortable uncomfortable",
+        mode = QuizMode.TYPE
+    ),
+    QuizQuestion(
+        prompt = "zameldowanie",
+        correctAnswer = "check-in",
+        options = listOf("check-out", "check-in", "booking", "reception")
+    ),
+    QuizQuestion(
+        prompt = "lotnisko",
+        correctAnswer = "airport",
+        options = listOf("harbour", "station", "airport", "terminal")
+    ),
+    QuizQuestion(
+        prompt = "bagaż podręczny",
+        correctAnswer = "hand luggage",
+        mode = QuizMode.TYPE
+    ),
+    QuizQuestion(
+        prompt = "wynajmować",
+        correctAnswer = "to rent",
+        options = listOf("to rent", "to borrow", "to lend", "to owe")
+    ),
+    QuizQuestion(
+        prompt = "spóźniony",
+        correctAnswer = "late",
+        mode = QuizMode.TYPE
+    ),
+    QuizQuestion(
+        prompt = "umowa",
+        correctAnswer = "contract",
+        options = listOf("contact", "contract", "contrast", "content")
+    )
+)
 
 @Composable
 fun VocabularyNavHost() {
@@ -128,7 +183,20 @@ fun VocabularyNavHost() {
             }
 
             composable(Routes.LEARN) {
+                var questionIndex by rememberSaveable { mutableIntStateOf(0) }
                 QuizScreen(
+                    currentIndex = questionIndex,
+                    totalCount = questions.size,
+                    question = questions[questionIndex],
+                    onNextQuestion = {
+                        if (questionIndex < questions.lastIndex) {
+                            questionIndex++
+                        } else {
+                            questionIndex = 0
+                            navController.navigateToTab(Routes.ENTRIES)
+                        }
+                    },
+                    onRestart = { questionIndex = 0 },
                     onBack = { navController.popBackStack() }
                 )
             }

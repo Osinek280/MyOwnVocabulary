@@ -398,7 +398,7 @@ fun EntryDetailScreen(
     }
 }
 
-private fun Modifier.dashedBorder(width: Dp, color: Color, cornerRadius: Dp): Modifier = drawBehind {
+internal fun Modifier.dashedBorder(width: Dp, color: Color, cornerRadius: Dp): Modifier = drawBehind {
     val strokeWidth = width.toPx()
     val inset = strokeWidth / 2f
     val dash = strokeWidth * 3f
