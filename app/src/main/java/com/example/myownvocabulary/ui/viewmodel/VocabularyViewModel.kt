@@ -113,6 +113,7 @@ class VocabularyViewModel(
         contexts: List<ContextSentence>,
         kind: EntryKind
     ) {
+        if (term.isBlank() || translation.isBlank()) return
         viewModelScope.launch {
             val entryId = if (id.isNullOrEmpty()) {
                 val entry = EntryEntity(

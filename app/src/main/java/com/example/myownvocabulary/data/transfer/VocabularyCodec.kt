@@ -52,7 +52,7 @@ object VocabularyCodec {
     private fun accept(entry: FileEntry, seenIds: MutableSet<String>): FileEntry? {
         val kind = runCatching { EntryKind.valueOf(entry.kind) }.getOrNull()
         val partOfSpeech = runCatching { PartOfSpeech.valueOf(entry.partOfSpeech) }.getOrNull()
-        if (kind == null || partOfSpeech == null || entry.term.isBlank()) return null
+        if (kind == null || partOfSpeech == null || entry.term.isBlank() || entry.translation.isBlank()) return null
 
         val id = entry.id.ifBlank { UUID.randomUUID().toString() }
         if (!seenIds.add(id)) return null

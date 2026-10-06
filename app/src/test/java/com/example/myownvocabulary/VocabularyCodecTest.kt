@@ -104,6 +104,19 @@ class VocabularyCodecTest {
     }
 
     @Test
+    fun decode_skipsBlankTranslation() {
+        for (translation in listOf("", " \t\n")) {
+            val invalid = sampleEntry().copy(translation = translation)
+            val valid = sampleEntry().copy(id = "valid")
+
+            val decoded = VocabularyCodec.decode(VocabularyCodec.encode(listOf(invalid, valid)))
+
+            assertEquals(1, decoded.skipped)
+            assertEquals(listOf(valid), decoded.entries)
+        }
+    }
+
+    @Test
     fun decode_assignsIdWhenMissingAndKeepsTags() {
         val raw = """
             {
