@@ -1,10 +1,8 @@
 package com.example.myownvocabulary.ui.screens
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,12 +39,9 @@ import androidx.compose.ui.unit.sp
 import com.example.myownvocabulary.data.entry.EntryKind
 import com.example.myownvocabulary.data.entry.Language
 import com.example.myownvocabulary.model.Entry
-import com.example.myownvocabulary.ui.components.CheckIcon
-import com.example.myownvocabulary.ui.components.ChevronRight
+import com.example.myownvocabulary.ui.components.EntryRow
 import com.example.myownvocabulary.ui.components.PlusIcon
 import com.example.myownvocabulary.ui.components.SearchBar
-import com.example.myownvocabulary.ui.components.badgeLabel
-import com.example.myownvocabulary.ui.components.posColor
 import com.example.myownvocabulary.ui.components.states.EmptySearchState
 import com.example.myownvocabulary.ui.components.states.EmptyVocabularyState
 import com.example.myownvocabulary.ui.components.states.LoadingState
@@ -344,73 +339,5 @@ private fun SelectionChip(label: String, onClick: () -> Unit, containerColor: Co
             fontWeight = FontWeight.SemiBold,
             color = contentColor
         )
-    }
-}
-
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-private fun EntryRow(
-    entry: Entry,
-    isSelectionMode: Boolean,
-    isSelected: Boolean,
-    onClick: () -> Unit,
-    onLongClick: () -> Unit
-) {
-    val colors = MaterialTheme.colorScheme
-    val badgeColor = posColor(entry.partOfSpeech)
-
-    val language = Language.fromCode(entry.languageCode)
-
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(
-                if (isSelected) {
-                    colors.primary.copy(alpha = 0.12f)
-                } else {
-                    colors.surfaceVariant
-                }
-            )
-            .combinedClickable(
-                onClick = onClick,
-                onLongClick = onLongClick
-            )
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.SpaceBetween,
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(10.dp)
-        ) {
-            Text(
-                language.flagEmoji,
-                fontSize = 12.sp,
-                modifier = Modifier
-            )
-            Text(entry.term, fontSize = 16.sp, fontWeight = FontWeight.SemiBold, color = colors.onSurface)
-            Text(
-                entry.partOfSpeech.badgeLabel(),
-                fontSize = 10.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = badgeColor,
-                modifier = Modifier
-                    .clip(RoundedCornerShape(99.dp))
-                    .background(badgeColor.copy(alpha = 0.09f))
-                    .padding(horizontal = 6.dp, vertical = 2.dp)
-            )
-        }
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            Text(entry.translation, fontSize = 14.sp, fontWeight = FontWeight.Medium, color = colors.outline)
-            if (isSelected) {
-                CheckIcon(color = colors.primary)
-            } else if (!isSelectionMode) {
-                ChevronRight()
-            }
-        }
     }
 }

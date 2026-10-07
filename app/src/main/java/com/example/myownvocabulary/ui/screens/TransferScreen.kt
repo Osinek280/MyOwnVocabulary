@@ -18,14 +18,13 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Checkbox
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,10 +40,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myownvocabulary.data.entry.EntryKind
@@ -53,10 +50,10 @@ import com.example.myownvocabulary.data.transfer.TransferPreview
 import com.example.myownvocabulary.data.transfer.TransferScope
 import com.example.myownvocabulary.data.transfer.TransferSelection
 import com.example.myownvocabulary.data.transfer.matches
+import com.example.myownvocabulary.model.Entry
 import com.example.myownvocabulary.ui.components.BackButton
+import com.example.myownvocabulary.ui.components.EntryRow
 import com.example.myownvocabulary.ui.components.SectionLabel
-import com.example.myownvocabulary.ui.components.badgeLabel
-import com.example.myownvocabulary.ui.components.posColor
 import com.example.myownvocabulary.ui.components.states.LoadingState
 
 @Composable
@@ -385,76 +382,40 @@ private fun PreviewRow(
     status: String?
 ) {
     val colors = MaterialTheme.colorScheme
-    val knownLanguage = Language.entries.find { it.code.equals(row.languageCode, ignoreCase = true) }
-    val badgeColor = posColor(row.partOfSpeech)
     val isNew = status == "nowy"
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(colors.surfaceVariant)
-            .toggleable(
-                value = selected,
-                enabled = enabled,
-                role = Role.Checkbox,
-                onValueChange = { onToggle() }
-            )
-            .padding(horizontal = 16.dp, vertical = 16.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically
+    Box(
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Text(knownLanguage?.flagEmoji ?: row.languageCode, fontSize = 12.sp)
-        Column(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    row.term,
-                    modifier = Modifier.weight(1f, fill = false),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = colors.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(row.kind.icon.trim(), fontSize = 12.sp)
-                Text(
-                    row.partOfSpeech.badgeLabel(),
-                    fontSize = 10.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = badgeColor,
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(99.dp))
-                        .background(badgeColor.copy(alpha = 0.09f))
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                )
-            }
-            Text(
-                row.translation,
-                fontSize = 14.sp,
-                fontWeight = FontWeight.Medium,
-                color = colors.outline,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        }
+        EntryRow(
+            entry = Entry(
+                id = row.id,
+                term = row.term,
+                translation = row.translation,
+                languageCode = row.languageCode,
+                partOfSpeech = row.partOfSpeech,
+                kind = row.kind
+            ),
+            isSelectionMode = true,
+            isSelected = selected,
+            enabled = enabled,
+            onClick = onToggle,
+            onCheckedChange = { onToggle() }
+        )
         if (status != null) {
             Text(
                 status,
-                fontSize = 11.sp,
+                fontSize = 10.sp,
+                lineHeight = 12.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = if (isNew) colors.onTertiaryContainer else colors.onSurfaceVariant,
                 modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .offset(x = (-12).dp, y = (-8).dp)
                     .clip(RoundedCornerShape(99.dp))
                     .background(if (isNew) colors.tertiaryContainer else colors.surface)
-                    .padding(horizontal = 8.dp, vertical = 4.dp)
+                    .padding(horizontal = 6.dp, vertical = 2.dp)
             )
         }
-        Checkbox(checked = selected, onCheckedChange = null, enabled = enabled)
     }
 }
 
