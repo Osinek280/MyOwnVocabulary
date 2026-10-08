@@ -51,8 +51,10 @@ object VocabularyCodec {
 
     private fun accept(entry: FileEntry, seenIds: MutableSet<String>): FileEntry? {
         val kind = runCatching { EntryKind.valueOf(entry.kind) }.getOrNull()
-        val partOfSpeech = runCatching { PartOfSpeech.valueOf(entry.partOfSpeech) }.getOrNull()
-        if (kind == null || partOfSpeech == null || entry.term.isBlank() || entry.translation.isBlank()) return null
+        val partOfSpeech = entry.partOfSpeech?.let { value ->
+            runCatching { PartOfSpeech.valueOf(value) }.getOrNull() ?: return null
+        }
+        if (kind == null || entry.term.isBlank() || entry.translation.isBlank()) return null
 
         val id = entry.id.ifBlank { UUID.randomUUID().toString() }
         if (!seenIds.add(id)) return null
@@ -62,7 +64,7 @@ object VocabularyCodec {
             term = entry.term.trim(),
             translation = entry.translation.trim(),
             kind = kind.name,
-            partOfSpeech = partOfSpeech.name,
+            partOfSpeech = partOfSpeech?.name,
             tags = entry.tags,
             contexts = entry.contexts.map { context ->
                 context.copy(id = context.id.ifBlank { UUID.randomUUID().toString() })

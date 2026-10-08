@@ -5,6 +5,8 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
+import androidx.room.migration.Migration
+import androidx.sqlite.db.SupportSQLiteDatabase
 import com.example.myownvocabulary.data.context.ContextSentenceDao
 import com.example.myownvocabulary.data.context.ContextSentenceEntity
 import com.example.myownvocabulary.data.entry.EntryDao
@@ -12,7 +14,7 @@ import com.example.myownvocabulary.data.entry.EntryEntity
 
 @Database(
     entities = [EntryEntity::class, ContextSentenceEntity::class],
-    version = 7,
+    version = 9,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -21,6 +23,46 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun contextSentenceDao(): ContextSentenceDao
 
     companion object {
+        internal val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE entries ADD COLUMN meaning TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE entries ADD COLUMN numericValue TEXT NOT NULL DEFAULT ''")
+            }
+        }
+
+        internal val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Preserve child rows before replacing their parent table (ON DELETE CASCADE).
+                db.execSQL("CREATE TEMP TABLE context_backup AS SELECT * FROM context_sentences")
+                db.execSQL(
+                    """CREATE TABLE entries_nullable (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    term TEXT NOT NULL,
+                    translation TEXT NOT NULL,
+                    languageCode TEXT NOT NULL,
+                    createdAt INTEGER NOT NULL,
+                    partOfSpeech TEXT,
+                    kind TEXT NOT NULL,
+                    meaning TEXT,
+                    numericValue TEXT
+                )"""
+                )
+                db.execSQL(
+                    """INSERT INTO entries_nullable
+                    SELECT id, term, translation, languageCode, createdAt,
+                        CASE WHEN kind = 'Word' THEN partOfSpeech ELSE NULL END,
+                        kind,
+                        CASE WHEN kind = 'Idiom' THEN NULLIF(TRIM(meaning), '') ELSE NULL END,
+                        CASE WHEN kind = 'Numeral' THEN NULLIF(TRIM(numericValue), '') ELSE NULL END
+                    FROM entries"""
+                )
+                db.execSQL("DROP TABLE entries")
+                db.execSQL("ALTER TABLE entries_nullable RENAME TO entries")
+                db.execSQL("INSERT OR REPLACE INTO context_sentences SELECT * FROM context_backup")
+                db.execSQL("DROP TABLE context_backup")
+            }
+        }
+
         @Volatile
         private var instance: AppDatabase? = null
 
@@ -30,6 +72,7 @@ abstract class AppDatabase : RoomDatabase() {
                 AppDatabase::class.java,
                 "vocabulary.db"
             )
+                .addMigrations(MIGRATION_7_8, MIGRATION_8_9)
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
                 .also { instance = it }

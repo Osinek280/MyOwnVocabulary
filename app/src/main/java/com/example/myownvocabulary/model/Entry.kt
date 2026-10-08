@@ -9,8 +9,11 @@ data class Entry(
     val term: String,
     val translation: String,
     val languageCode: String,
-    val partOfSpeech: PartOfSpeech,
-    val kind: EntryKind
+    val kind: EntryKind,
+
+    val partOfSpeech: PartOfSpeech? = null,
+    val meaning: String? = null,
+    val numericValue: String? = null
 )
 
 fun EntryEntity.toModel() = Entry(
@@ -19,5 +22,7 @@ fun EntryEntity.toModel() = Entry(
     translation = translation,
     languageCode = languageCode,
     partOfSpeech = partOfSpeech,
-    kind = kind
+    kind = kind,
+    meaning = meaning,
+    numericValue = numericValue
 )

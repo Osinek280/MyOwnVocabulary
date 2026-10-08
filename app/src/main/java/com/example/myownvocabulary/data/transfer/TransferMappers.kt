@@ -12,8 +12,10 @@ internal fun EntryEntity.toFileEntry(contexts: List<ContextSentenceEntity>) = Fi
     term = term,
     translation = translation,
     languageCode = languageCode,
-    partOfSpeech = partOfSpeech.name,
+    partOfSpeech = partOfSpeech?.name,
     kind = kind.name,
+    meaning = meaning,
+    numericValue = numericValue,
     createdAt = createdAt,
     tags = emptyList(),
     contexts = contexts.map { it.toFileContext() }
@@ -25,8 +27,10 @@ internal fun FileEntry.toEntity() = EntryEntity(
     translation = translation.trim(),
     languageCode = languageCode,
     createdAt = createdAt.takeIf { it > 0 } ?: System.currentTimeMillis(),
-    partOfSpeech = PartOfSpeech.valueOf(partOfSpeech),
-    kind = EntryKind.valueOf(kind)
+    partOfSpeech = partOfSpeech?.let { PartOfSpeech.valueOf(it) },
+    kind = EntryKind.valueOf(kind),
+    meaning = meaning?.trim()?.takeIf { it.isNotEmpty() },
+    numericValue = numericValue?.trim()?.takeIf { it.isNotEmpty() }
 )
 
 internal fun FileContext.toEntity(entryId: String) = ContextSentenceEntity(

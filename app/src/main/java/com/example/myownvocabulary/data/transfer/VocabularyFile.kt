@@ -13,10 +13,12 @@ data class FileEntry(
     val term: String,
     val translation: String,
     val languageCode: String,
-    val partOfSpeech: String,
+    val partOfSpeech: String? = null,
     val kind: String,
     val createdAt: Long = 0,
     val tags: List<String> = emptyList(),
+    val meaning: String? = null,
+    val numericValue: String? = null,
     val contexts: List<FileContext> = emptyList()
 )
 
@@ -35,7 +37,9 @@ data class DecodedVocabulary(val entries: List<FileEntry>, val skipped: Int)
 
 fun FileEntry.toPreview(): TransferPreview? {
     val parsedKind = runCatching { EntryKind.valueOf(kind) }.getOrNull() ?: return null
-    val parsedPartOfSpeech = runCatching { PartOfSpeech.valueOf(partOfSpeech) }.getOrNull() ?: return null
+    val parsedPartOfSpeech = partOfSpeech?.let { value ->
+        runCatching { PartOfSpeech.valueOf(value) }.getOrNull() ?: return null
+    }
     return TransferPreview(
         id = id,
         term = term,

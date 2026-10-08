@@ -9,6 +9,9 @@ import com.example.myownvocabulary.data.transfer.TransferSelection
 import com.example.myownvocabulary.data.transfer.VocabularyCodec
 import com.example.myownvocabulary.data.transfer.VocabularyFormatException
 import com.example.myownvocabulary.data.transfer.matches
+import com.example.myownvocabulary.data.transfer.toEntity
+import com.example.myownvocabulary.data.transfer.toFileEntry
+import com.example.myownvocabulary.data.transfer.toPreview
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertThrows
@@ -178,6 +181,54 @@ class VocabularyCodecTest {
         assertTrue(selection.matches("de", EntryKind.Word))
         assertTrue(selection.matches("de", EntryKind.Sentence))
         assertFalse(selection.matches("en", EntryKind.Word))
+    }
+
+    @Test
+    fun roundTrip_preservesKindSpecificFieldsThroughDatabaseAndFile() {
+        val entries = listOf(
+            sampleEntry().copy(
+                id = "idiom",
+                kind = "Idiom",
+                term = "break a leg",
+                translation = "złam nogę",
+                meaning = "Powodzenia!",
+                contexts = emptyList()
+            ),
+            sampleEntry().copy(
+                id = "numeral",
+                kind = "Numeral",
+                term = "twenty one",
+                translation = "dwadzieścia jeden",
+                numericValue = "21",
+                contexts = emptyList()
+            )
+        )
+        val stored = entries.map { it.toEntity().toFileEntry(emptyList()) }
+        assertEquals(entries, VocabularyCodec.decode(VocabularyCodec.encode(stored)).entries)
+    }
+
+    @Test
+    fun decode_legacyEntryHasEmptyKindSpecificFields() {
+        val raw = """{"version":1,"entries":[{"id":"old","term":"one",
+            "translation":"jeden","languageCode":"en","partOfSpeech":"Noun","kind":"Numeral"}]}"""
+        val entry = VocabularyCodec.decode(raw).entries.single()
+        assertEquals(null, entry.meaning)
+        assertEquals(null, entry.numericValue)
+    }
+
+    @Test
+    fun roundTrip_keepsNullFieldsThroughStorageAndPreview() {
+        val entry = sampleEntry().copy(
+            kind = "Numeral",
+            partOfSpeech = null,
+            numericValue = "001",
+            contexts = emptyList()
+        )
+        val stored = entry.toEntity().toFileEntry(emptyList())
+        val decoded = VocabularyCodec.decode(VocabularyCodec.encode(listOf(stored)))
+        assertEquals(listOf(entry), decoded.entries)
+        assertEquals(null, decoded.entries.single().toPreview()?.partOfSpeech)
+        assertEquals(EntryKind.Numeral, decoded.entries.single().toPreview()?.kind)
     }
 
     private fun sampleEntry() = FileEntry(

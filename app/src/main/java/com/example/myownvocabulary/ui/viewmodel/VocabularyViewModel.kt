@@ -108,10 +108,12 @@ class VocabularyViewModel(
         id: String?,
         term: String,
         translation: String,
-        pos: PartOfSpeech,
         languageCode: String,
         contexts: List<ContextSentence>,
-        kind: EntryKind
+        kind: EntryKind,
+        pos: PartOfSpeech?,
+        meaning: String? = null,
+        numericValue: String? = null
     ) {
         if (term.isBlank() || translation.isBlank()) return
         viewModelScope.launch {
@@ -121,8 +123,10 @@ class VocabularyViewModel(
                     translation = translation.trim(),
                     languageCode = languageCode,
                     createdAt = System.currentTimeMillis(),
-                    partOfSpeech = pos,
-                    kind = kind
+                    partOfSpeech = pos.takeIf { kind == EntryKind.Word },
+                    kind = kind,
+                    meaning = meaning?.trim()?.takeIf { kind == EntryKind.Idiom && it.isNotEmpty() },
+                    numericValue = numericValue?.trim()?.takeIf { kind == EntryKind.Numeral && it.isNotEmpty() }
                 )
                 dao.insert(entry)
                 entry.id
@@ -133,7 +137,9 @@ class VocabularyViewModel(
                         term = term.trim(),
                         translation = translation.trim(),
                         languageCode = languageCode,
-                        partOfSpeech = pos
+                        partOfSpeech = pos.takeIf { kind == EntryKind.Word },
+                        meaning = meaning?.trim()?.takeIf { kind == EntryKind.Idiom && it.isNotEmpty() },
+                        numericValue = numericValue?.trim()?.takeIf { kind == EntryKind.Numeral && it.isNotEmpty() }
                     )
                 )
                 id

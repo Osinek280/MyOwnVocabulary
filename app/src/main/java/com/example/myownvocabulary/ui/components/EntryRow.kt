@@ -132,7 +132,9 @@ private fun WordRow(entry: Entry) {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End)
         ) {
-            EntryBadge(entry.partOfSpeech.badgeLabel(), posColor(entry.partOfSpeech))
+            entry.partOfSpeech?.let { partOfSpeech ->
+                EntryBadge(partOfSpeech.badgeLabel(), posColor(partOfSpeech))
+            }
             Text(
                 entry.translation,
                 modifier = Modifier.weight(1f, fill = false),

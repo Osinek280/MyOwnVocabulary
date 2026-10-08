@@ -18,11 +18,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.windowInsetsPadding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -40,6 +42,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.PathEffect
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -75,7 +78,7 @@ fun EntryDetailScreen(
     initialContexts: List<ContextSentence>,
     entries: List<Entry>,
     onBack: () -> Unit = {},
-    onSave: (String, String, PartOfSpeech, String, List<ContextSentence>, EntryKind) -> Unit,
+    onSave: (String, String, PartOfSpeech?, String, List<ContextSentence>, EntryKind, String, String) -> Unit,
     recentLanguages: List<Language> = emptyList(),
     onLanguageRemembered: (Language) -> Unit,
     onClearRecent: () -> Unit
@@ -85,7 +88,16 @@ fun EntryDetailScreen(
 
     var term by remember(entry.id) { mutableStateOf(entry.term) }
     var translation by remember(entry.id) { mutableStateOf(entry.translation) }
+    var meaning by remember(entry.id) { mutableStateOf(entry.meaning.orEmpty()) }
+    var numericValue by remember(entry.id) { mutableStateOf(entry.numericValue.orEmpty()) }
+    val termLabel = when (entry.kind) {
+        EntryKind.Word -> "Słowo"
+        EntryKind.Expression, EntryKind.Idiom -> "Wyrażenie"
+        EntryKind.Sentence -> "Zdanie"
+        EntryKind.Numeral -> "Zapis słowny"
+    }
     var pos by remember(entry.id) { mutableStateOf(entry.partOfSpeech) }
+    var posExpanded by remember(entry.id) { mutableStateOf(false) }
     var language by remember(entry.id) {
         mutableStateOf(
             if (isNew) {
@@ -158,7 +170,9 @@ fun EntryDetailScreen(
                                 it.id !in
                                     removedIds
                             },
-                            entry.kind
+                            entry.kind,
+                            meaning.trim(),
+                            numericValue.trim()
                         )
                     }
                     .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -194,7 +208,7 @@ fun EntryDetailScreen(
             }
 
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
-                SectionLabel("Wyrażenie")
+                SectionLabel(entry.kind.singularLabel)
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -205,11 +219,11 @@ fun EntryDetailScreen(
                         modifier = Modifier
                             .padding(start = 16.dp, end = 16.dp, top = 16.dp, bottom = 12.dp)
                     ) {
-                        Text("Termin", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
+                        Text(termLabel, fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
                         Spacer(Modifier.height(4.dp))
                         SimpleField(
                             term,
-                            { term = it.filter { c -> !c.isWhitespace() } },
+                            { term = if (entry.kind == EntryKind.Word) it.filter { c -> !c.isWhitespace() } else it },
                             FontWeight.SemiBold,
                             colors.onSurface
                         )
@@ -224,6 +238,23 @@ fun EntryDetailScreen(
                             )
                         }
                     }
+                    if (entry.kind == EntryKind.Idiom || entry.kind == EntryKind.Numeral) {
+                        HorizontalDivider(thickness = 1.dp, color = colors.outlineVariant)
+                        Column(Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+                            Text(
+                                if (entry.kind == EntryKind.Idiom) "Znaczenie" else "Zapis cyframi",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = colors.outline
+                            )
+                            Spacer(Modifier.height(4.dp))
+                            if (entry.kind == EntryKind.Idiom) {
+                                SimpleField(meaning, { meaning = it }, FontWeight.Medium, colors.onSurface)
+                            } else {
+                                SimpleField(numericValue, { numericValue = it }, FontWeight.Medium, colors.onSurface)
+                            }
+                        }
+                    }
                     HorizontalDivider(
                         thickness = 1.dp,
                         color = colors.outlineVariant
@@ -232,7 +263,18 @@ fun EntryDetailScreen(
                         modifier = Modifier
                             .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 16.dp)
                     ) {
-                        Text("Tłumaczenie", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = colors.outline)
+                        Text(
+                            if (entry.kind ==
+                                EntryKind.Idiom
+                            ) {
+                                "Dosłowne tłumaczenie"
+                            } else {
+                                "Tłumaczenie"
+                            },
+                            fontSize = 10.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = colors.outline
+                        )
                         Spacer(Modifier.height(4.dp))
                         SimpleField(translation, { translation = it }, FontWeight.Medium, colors.onSurface)
                         if (translationTaken) {
@@ -244,6 +286,67 @@ fun EntryDetailScreen(
                                 color = colors.error.copy(alpha = 0.7f),
                                 lineHeight = 14.sp
                             )
+                        }
+                    }
+                }
+            }
+            if (entry.kind == EntryKind.Word) {
+                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                    SectionLabel("Część mowy")
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(colors.surfaceVariant)
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .clickable { posExpanded = !posExpanded }
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.SpaceBetween
+                        ) {
+                            Text(
+                                pos?.displayLabel() ?: "Wybierz część mowy",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = if (pos == null) colors.outline else colors.onSurface
+                            )
+                            Text(
+                                if (posExpanded) "▴" else "▾",
+                                color = colors.primary,
+                                fontSize = 20.sp
+                            )
+                        }
+                        if (posExpanded) {
+                            HorizontalDivider(color = colors.outlineVariant)
+                            (PartOfSpeech.entries.toList() + null).forEach { option ->
+                                val selected = pos == option
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .background(if (selected) colors.primaryContainer else Color.Transparent)
+                                        .selectable(
+                                            selected = selected,
+                                            role = Role.RadioButton,
+                                            onClick = {
+                                                pos = option
+                                                posExpanded = false
+                                            }
+                                        )
+                                        .padding(horizontal = 12.dp, vertical = 2.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    RadioButton(selected = selected, onClick = null)
+                                    Text(
+                                        option?.displayLabel() ?: "Nie wybrano",
+                                        modifier = Modifier.padding(start = 12.dp, top = 12.dp, bottom = 12.dp),
+                                        color = if (selected) colors.onPrimaryContainer else colors.onSurface,
+                                        fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+                                    )
+                                }
+                            }
                         }
                     }
                 }
@@ -425,4 +528,12 @@ private fun SimpleField(value: String, onChange: (String) -> Unit, weight: FontW
         cursorBrush = SolidColor(colors.primary),
         modifier = Modifier.fillMaxWidth()
     )
+}
+
+private fun PartOfSpeech.displayLabel(): String = when (this) {
+    PartOfSpeech.Noun -> "Rzeczownik"
+    PartOfSpeech.Verb -> "Czasownik"
+    PartOfSpeech.Adjective -> "Przymiotnik"
+    PartOfSpeech.Adverb -> "Przysłówek"
+    PartOfSpeech.Other -> "Inna"
 }

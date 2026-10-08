@@ -7,10 +7,10 @@ import com.example.myownvocabulary.data.entry.PartOfSpeech
 
 class Converters {
     @TypeConverter
-    fun fromPartOfSpeech(value: PartOfSpeech): String = value.name
+    fun fromPartOfSpeech(value: PartOfSpeech?): String? = value?.name
 
     @TypeConverter
-    fun toPartOfSpeech(value: String): PartOfSpeech = PartOfSpeech.valueOf(value)
+    fun toPartOfSpeech(value: String?): PartOfSpeech? = value?.let { PartOfSpeech.valueOf(it) }
 
     @TypeConverter
     fun fromSpans(spans: List<TextSpan>): String = spans.joinToString(",") { "${it.start}:${it.end}" }

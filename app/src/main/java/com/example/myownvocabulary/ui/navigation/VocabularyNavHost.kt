@@ -261,15 +261,25 @@ fun VocabularyNavHost() {
                         term = "",
                         translation = "",
                         languageCode = "en",
-                        partOfSpeech = PartOfSpeech.Noun,
+                        partOfSpeech = PartOfSpeech.Noun.takeIf { kind == EntryKind.Word },
                         kind = kind
                     ),
                     entries = uiState.entries,
                     initialContexts = emptyList(),
                     recentLanguages = recentLanguages,
                     onBack = { navController.popBackStack() },
-                    onSave = { term, translation, pos, languageCode, contexts, kind ->
-                        viewModel.save(id = null, term, translation, pos, languageCode, contexts, kind)
+                    onSave = { term, translation, pos, languageCode, contexts, kind, meaning, numericValue ->
+                        viewModel.save(
+                            id = null,
+                            term = term,
+                            translation = translation,
+                            pos = pos,
+                            languageCode = languageCode,
+                            contexts = contexts,
+                            kind = kind,
+                            meaning = meaning,
+                            numericValue = numericValue
+                        )
                         navController.popBackStack()
                     },
                     onLanguageRemembered = viewModel::rememberLanguage,
@@ -296,8 +306,18 @@ fun VocabularyNavHost() {
                             entry = entry,
                             initialContexts = loadedContexts,
                             entries = uiState.entries,
-                            onSave = { term, translation, pos, languageCode, contexts, kind ->
-                                viewModel.save(id = entry.id, term, translation, pos, languageCode, contexts, kind)
+                            onSave = { term, translation, pos, languageCode, contexts, kind, meaning, numericValue ->
+                                viewModel.save(
+                                    id = entry.id,
+                                    term = term,
+                                    translation = translation,
+                                    pos = pos,
+                                    languageCode = languageCode,
+                                    contexts = contexts,
+                                    kind = kind,
+                                    meaning = meaning,
+                                    numericValue = numericValue
+                                )
                                 navController.popBackStack()
                             },
                             recentLanguages = recentLanguages,

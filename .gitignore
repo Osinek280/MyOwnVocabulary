@@ -16,3 +16,5 @@ local.properties
 *.jks
 .kotlin/
 .idea/deploymentTargetSelector.xml
+/exports
+.idea/misc.xml

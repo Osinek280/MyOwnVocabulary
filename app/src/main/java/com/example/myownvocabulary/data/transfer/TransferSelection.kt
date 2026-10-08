@@ -21,7 +21,7 @@ data class TransferPreview(
     val translation: String,
     val languageCode: String,
     val kind: EntryKind,
-    val partOfSpeech: PartOfSpeech
+    val partOfSpeech: PartOfSpeech? = null
 )
 
 fun TransferSelection.matches(languageCode: String, kind: EntryKind): Boolean {
