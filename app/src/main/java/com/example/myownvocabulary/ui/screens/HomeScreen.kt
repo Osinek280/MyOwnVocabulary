@@ -28,11 +28,18 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.listSaver
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.semantics.toggleableState
+import androidx.compose.ui.state.ToggleableState
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -42,6 +49,7 @@ import com.example.myownvocabulary.model.Entry
 import com.example.myownvocabulary.ui.components.EntryRow
 import com.example.myownvocabulary.ui.components.PlusIcon
 import com.example.myownvocabulary.ui.components.SearchBar
+import com.example.myownvocabulary.ui.components.SelectionCheckbox
 import com.example.myownvocabulary.ui.components.states.EmptySearchState
 import com.example.myownvocabulary.ui.components.states.EmptyVocabularyState
 import com.example.myownvocabulary.ui.components.states.LoadingState
@@ -61,25 +69,31 @@ fun HomeScreen(
     selectedIds: Set<String> = emptySet()
 ) {
     val colors = MaterialTheme.colorScheme
-    var search by remember { mutableStateOf("") }
+    var search by rememberSaveable { mutableStateOf("") }
 
-    var languageFilter by remember { mutableStateOf<Language?>(null) }
-    var kindFilter by remember { mutableStateOf<EntryKind?>(null) }
+    var languageFilter by rememberSaveable(stateSaver = FilterSelectionSaver) {
+        mutableStateOf<List<String>>(emptyList())
+    }
+    var kindFilter by rememberSaveable(stateSaver = FilterSelectionSaver) {
+        mutableStateOf<List<String>>(emptyList())
+    }
 
     val languages = remember(entries) {
         entries.map { Language.fromCode(it.languageCode) }
             .distinctBy { it.code }
             .sortedBy { it.displayName }
     }
-    val activeLanguage = languageFilter?.takeIf { selected ->
-        languages.any { it.code == selected.code }
-    }
+    val activeLanguages = languages.filter { it.code in languageFilter }
+    val activeKinds = EntryKind.entries.filter { it.name in kindFilter }
+    val allLanguagesSelected = languageFilter.isEmpty() ||
+        (languages.isNotEmpty() && activeLanguages.size == languages.size)
+    val allKindsSelected = kindFilter.isEmpty() || activeKinds.size == EntryKind.entries.size
 
     val filtered = entries.filter { entry ->
         val matchesSearch = entry.term.contains(search, ignoreCase = true) ||
             entry.translation.contains(search, ignoreCase = true)
-        val matchesLanguage = activeLanguage == null || entry.languageCode == activeLanguage.code
-        val matchesKind = kindFilter == null || entry.kind == kindFilter
+        val matchesLanguage = allLanguagesSelected || entry.languageCode in languageFilter
+        val matchesKind = allKindsSelected || entry.kind.name in kindFilter
         matchesSearch && matchesLanguage && matchesKind
     }
 
@@ -215,26 +229,58 @@ fun HomeScreen(
                                 horizontalArrangement = Arrangement.spacedBy(6.dp)
                             ) {
                                 FilterMenu(
-                                    label =
-                                    activeLanguage?.let { "${it.flagEmoji} ${it.displayName}" }
-                                        ?: "Wszystkie języki",
-                                    options = listOf(null) + languages,
-                                    optionLabel = { language ->
-                                        language?.let { "${it.flagEmoji} ${it.displayName}" } ?: "Wszystkie języki"
+                                    label = when {
+                                        allLanguagesSelected -> "Wszystkie języki"
+                                        activeLanguages.size == 1 -> activeLanguages.single().let {
+                                            "${it.flagEmoji} ${it.displayName}"
+                                        }
+                                        else -> "Języki (${languageFilter.size})"
                                     },
+                                    allLabel = "Wszystkie języki",
+                                    allSelected = allLanguagesSelected,
+                                    onSelectAll = {
+                                        languageFilter = emptyList()
+                                        onClearSelection()
+                                    },
+                                    options = languages,
+                                    optionLabel = { language ->
+                                        "${language.flagEmoji} ${language.displayName}"
+                                    },
+                                    isSelected = { !allLanguagesSelected && it.code in languageFilter },
                                     onSelect = { selected ->
-                                        languageFilter = selected
+                                        languageFilter = toggleFilter(
+                                            selected = if (allLanguagesSelected) emptyList() else languageFilter,
+                                            value = selected.code,
+                                            options = languages.map { it.code }
+                                        )
                                         onClearSelection()
                                     }
                                 )
                                 FilterMenu(
-                                    label = kindFilter?.let { "${it.icon} ${it.pluralLabel}" } ?: "Wszystkie typy",
-                                    options = listOf<EntryKind?>(null) + EntryKind.entries,
-                                    optionLabel = { kind ->
-                                        kind?.let { "${it.icon} ${it.pluralLabel}" } ?: "Wszystkie"
+                                    label = when {
+                                        allKindsSelected -> "Wszystkie typy"
+                                        activeKinds.size == 1 -> activeKinds.single().let {
+                                            "${it.icon} ${it.pluralLabel}"
+                                        }
+                                        else -> "Typy (${kindFilter.size})"
                                     },
+                                    allLabel = "Wszystkie typy",
+                                    allSelected = allKindsSelected,
+                                    onSelectAll = {
+                                        kindFilter = emptyList()
+                                        onClearSelection()
+                                    },
+                                    options = EntryKind.entries,
+                                    optionLabel = { kind ->
+                                        "${kind.icon} ${kind.pluralLabel}"
+                                    },
+                                    isSelected = { !allKindsSelected && it.name in kindFilter },
                                     onSelect = { selected ->
-                                        kindFilter = selected
+                                        kindFilter = toggleFilter(
+                                            selected = if (allKindsSelected) emptyList() else kindFilter,
+                                            value = selected.name,
+                                            options = EntryKind.entries.map { it.name }
+                                        )
                                         onClearSelection()
                                     }
                                 )
@@ -285,7 +331,16 @@ fun HomeScreen(
 }
 
 @Composable
-private fun <T> FilterMenu(label: String, options: List<T>, optionLabel: (T) -> String, onSelect: (T) -> Unit) {
+private fun <T> FilterMenu(
+    label: String,
+    allLabel: String,
+    allSelected: Boolean,
+    onSelectAll: () -> Unit,
+    options: List<T>,
+    optionLabel: (T) -> String,
+    isSelected: (T) -> Boolean,
+    onSelect: (T) -> Unit
+) {
     var expanded by remember { mutableStateOf(false) }
     val colors = MaterialTheme.colorScheme
     Box {
@@ -300,17 +355,40 @@ private fun <T> FilterMenu(label: String, options: List<T>, optionLabel: (T) -> 
             onDismissRequest = { expanded = false },
             shape = RoundedCornerShape(16.dp)
         ) {
+            DropdownMenuItem(
+                modifier = Modifier.semantics {
+                    role = Role.Checkbox
+                    toggleableState = ToggleableState(allSelected)
+                },
+                text = { Text(allLabel) },
+                trailingIcon = { SelectionCheckbox(checked = allSelected) },
+                onClick = onSelectAll
+            )
             options.forEach { option ->
                 DropdownMenuItem(
+                    modifier = Modifier.semantics {
+                        role = Role.Checkbox
+                        toggleableState = ToggleableState(isSelected(option))
+                    },
                     text = { Text(optionLabel(option)) },
+                    trailingIcon = { SelectionCheckbox(checked = isSelected(option)) },
                     onClick = {
-                        expanded = false
                         onSelect(option)
                     }
                 )
             }
         }
     }
+}
+
+private val FilterSelectionSaver = listSaver<List<String>, String>(
+    save = { it },
+    restore = { it.toList() }
+)
+
+private fun toggleFilter(selected: List<String>, value: String, options: List<String>): List<String> {
+    val updated = if (value in selected) selected - value else selected + value
+    return if (updated.containsAll(options)) emptyList() else updated
 }
 
 private fun deleteExpressionsConfirmation(count: Int): String {

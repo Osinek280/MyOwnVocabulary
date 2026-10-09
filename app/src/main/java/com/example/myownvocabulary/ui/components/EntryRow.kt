@@ -104,8 +104,8 @@ fun EntryRow(
         }
         if (trailingContent != null) {
             trailingContent()
-        } else if (isSelected) {
-            CheckIcon(color = colors.primary)
+        } else if (isSelected || isSelectionMode) {
+            SelectionCheckbox(checked = isSelected, color = colors.primary)
         } else if (!isSelectionMode) {
             ChevronRight()
         }
