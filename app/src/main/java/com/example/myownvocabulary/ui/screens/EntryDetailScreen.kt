@@ -30,6 +30,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -55,10 +56,13 @@ import com.example.myownvocabulary.data.entry.Language
 import com.example.myownvocabulary.data.entry.PartOfSpeech
 import com.example.myownvocabulary.model.ContextSentence
 import com.example.myownvocabulary.model.Entry
+import com.example.myownvocabulary.model.EntryTag
 import com.example.myownvocabulary.ui.components.BackButton
 import com.example.myownvocabulary.ui.components.ContextCard
 import com.example.myownvocabulary.ui.components.ContextStep
 import com.example.myownvocabulary.ui.components.ContextWizard
+import com.example.myownvocabulary.ui.components.EntryTags
+import com.example.myownvocabulary.ui.components.EntryTagsSaver
 import com.example.myownvocabulary.ui.components.LanguagePicker
 import com.example.myownvocabulary.ui.components.PlusIcon
 import com.example.myownvocabulary.ui.components.SectionLabel
@@ -78,7 +82,17 @@ fun EntryDetailScreen(
     initialContexts: List<ContextSentence>,
     entries: List<Entry>,
     onBack: () -> Unit = {},
-    onSave: (String, String, PartOfSpeech?, String, List<ContextSentence>, EntryKind, String, String) -> Unit,
+    onSave: (
+        String,
+        String,
+        PartOfSpeech?,
+        String,
+        List<ContextSentence>,
+        EntryKind,
+        String,
+        String,
+        List<EntryTag>
+    ) -> Unit,
     recentLanguages: List<Language> = emptyList(),
     onLanguageRemembered: (Language) -> Unit,
     onClearRecent: () -> Unit
@@ -86,6 +100,7 @@ fun EntryDetailScreen(
     val colors = MaterialTheme.colorScheme
     val isNew = entry.id.isEmpty()
 
+    var tags by rememberSaveable(entry.id, stateSaver = EntryTagsSaver) { mutableStateOf(entry.tags) }
     var term by remember(entry.id) { mutableStateOf(entry.term) }
     var translation by remember(entry.id) { mutableStateOf(entry.translation) }
     var meaning by remember(entry.id) { mutableStateOf(entry.meaning.orEmpty()) }
@@ -172,7 +187,8 @@ fun EntryDetailScreen(
                             },
                             entry.kind,
                             meaning.trim(),
-                            numericValue.trim()
+                            numericValue.trim(),
+                            tags
                         )
                     }
                     .padding(horizontal = 16.dp, vertical = 8.dp)
@@ -351,6 +367,7 @@ fun EntryDetailScreen(
                     }
                 }
             }
+            EntryTags(entryId = entry.id, tags = tags, onTagsChange = { tags = it })
             Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),

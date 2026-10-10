@@ -2,6 +2,7 @@ package com.example.myownvocabulary.model
 
 import com.example.myownvocabulary.data.entry.EntryEntity
 import com.example.myownvocabulary.data.entry.EntryKind
+import com.example.myownvocabulary.data.entry.EntryWithTags
 import com.example.myownvocabulary.data.entry.PartOfSpeech
 
 data class Entry(
@@ -14,8 +15,11 @@ data class Entry(
     val partOfSpeech: PartOfSpeech? = null,
     val meaning: String? = null,
     val numericValue: String? = null,
-    val createdAt: Long = 0L
+    val createdAt: Long = 0L,
+    val tags: List<EntryTag> = emptyList()
 )
+
+fun EntryWithTags.toModel() = entry.toModel().copy(tags = tags.map { it.toModel() })
 
 fun EntryEntity.toModel() = Entry(
     id = id,

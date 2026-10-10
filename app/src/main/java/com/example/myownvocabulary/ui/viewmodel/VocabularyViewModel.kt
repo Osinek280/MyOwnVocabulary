@@ -13,6 +13,7 @@ import com.example.myownvocabulary.data.prefs.HomeOptions
 import com.example.myownvocabulary.data.prefs.UserPreferences
 import com.example.myownvocabulary.model.ContextSentence
 import com.example.myownvocabulary.model.Entry
+import com.example.myownvocabulary.model.EntryTag
 import com.example.myownvocabulary.model.toEntity
 import com.example.myownvocabulary.model.toModel
 import com.example.myownvocabulary.ui.components.quiz.QuizOptions
@@ -63,7 +64,7 @@ class VocabularyViewModel(
         }
     }
 
-    val uiState: StateFlow<EntriesUiState> = dao.observeAll()
+    val uiState: StateFlow<EntriesUiState> = dao.observeAllWithTags()
         .map { list ->
             EntriesUiState(
                 entries = list.map { it.toModel() },
@@ -132,7 +133,8 @@ class VocabularyViewModel(
         kind: EntryKind,
         pos: PartOfSpeech?,
         meaning: String? = null,
-        numericValue: String? = null
+        numericValue: String? = null,
+        tags: List<EntryTag> = emptyList()
     ) {
         if (term.isBlank() || translation.isBlank()) return
         viewModelScope.launch {
@@ -147,11 +149,11 @@ class VocabularyViewModel(
                     meaning = meaning?.trim()?.takeIf { kind == EntryKind.Idiom && it.isNotEmpty() },
                     numericValue = numericValue?.trim()?.takeIf { kind == EntryKind.Numeral && it.isNotEmpty() }
                 )
-                dao.insert(entry)
+                dao.saveWithTags(entry, tags.map { it.toEntity() }, isNew = true)
                 entry.id
             } else {
                 val existing = dao.getById(id) ?: return@launch
-                dao.update(
+                dao.saveWithTags(
                     existing.copy(
                         term = term.trim(),
                         translation = translation.trim(),
@@ -159,7 +161,9 @@ class VocabularyViewModel(
                         partOfSpeech = pos.takeIf { kind == EntryKind.Word },
                         meaning = meaning?.trim()?.takeIf { kind == EntryKind.Idiom && it.isNotEmpty() },
                         numericValue = numericValue?.trim()?.takeIf { kind == EntryKind.Numeral && it.isNotEmpty() }
-                    )
+                    ),
+                    tags.map { it.toEntity() },
+                    isNew = false
                 )
                 id
             }

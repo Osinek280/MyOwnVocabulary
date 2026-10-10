@@ -283,7 +283,7 @@ fun VocabularyNavHost() {
                     initialContexts = emptyList(),
                     recentLanguages = recentLanguages,
                     onBack = { navController.popBackStack() },
-                    onSave = { term, translation, pos, languageCode, contexts, kind, meaning, numericValue ->
+                    onSave = { term, translation, pos, languageCode, contexts, kind, meaning, numericValue, tags ->
                         viewModel.save(
                             id = null,
                             term = term,
@@ -293,7 +293,8 @@ fun VocabularyNavHost() {
                             contexts = contexts,
                             kind = kind,
                             meaning = meaning,
-                            numericValue = numericValue
+                            numericValue = numericValue,
+                            tags = tags
                         )
                         navController.popBackStack()
                     },
@@ -321,7 +322,17 @@ fun VocabularyNavHost() {
                             entry = entry,
                             initialContexts = loadedContexts,
                             entries = uiState.entries,
-                            onSave = { term, translation, pos, languageCode, contexts, kind, meaning, numericValue ->
+                            onSave = {
+                                    term,
+                                    translation,
+                                    pos,
+                                    languageCode,
+                                    contexts,
+                                    kind,
+                                    meaning,
+                                    numericValue,
+                                    tags
+                                ->
                                 viewModel.save(
                                     id = entry.id,
                                     term = term,
@@ -331,7 +342,8 @@ fun VocabularyNavHost() {
                                     contexts = contexts,
                                     kind = kind,
                                     meaning = meaning,
-                                    numericValue = numericValue
+                                    numericValue = numericValue,
+                                    tags = tags
                                 )
                                 navController.popBackStack()
                             },

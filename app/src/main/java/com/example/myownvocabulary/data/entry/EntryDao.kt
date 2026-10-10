@@ -12,6 +12,29 @@ import kotlinx.coroutines.flow.Flow
 interface EntryDao {
     @Transaction
     @Query("SELECT * FROM entries ORDER BY createdAt DESC")
+    fun observeAllWithTags(): Flow<List<EntryWithTags>>
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertTags(tags: List<EntryTagEntity>)
+
+    @Insert(onConflict = OnConflictStrategy.IGNORE)
+    suspend fun insertTagLinks(links: List<EntryTagCrossRef>)
+
+    @Query("DELETE FROM entry_tags WHERE entryId = :entryId")
+    suspend fun clearTagLinks(entryId: String)
+
+    @Transaction
+    suspend fun saveWithTags(entry: EntryEntity, tags: List<EntryTagEntity>, isNew: Boolean) {
+        if (isNew) insert(entry) else update(entry)
+        clearTagLinks(entry.id)
+        if (tags.isNotEmpty()) {
+            insertTags(tags)
+            insertTagLinks(tags.map { EntryTagCrossRef(entry.id, it.id) })
+        }
+    }
+
+    @Transaction
+    @Query("SELECT * FROM entries ORDER BY createdAt DESC")
     fun observeAll(): Flow<List<EntryEntity>>
 
     @Query("SELECT * FROM entries WHERE id = :id")

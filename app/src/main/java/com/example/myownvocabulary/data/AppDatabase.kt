@@ -11,10 +11,12 @@ import com.example.myownvocabulary.data.context.ContextSentenceDao
 import com.example.myownvocabulary.data.context.ContextSentenceEntity
 import com.example.myownvocabulary.data.entry.EntryDao
 import com.example.myownvocabulary.data.entry.EntryEntity
+import com.example.myownvocabulary.data.entry.EntryTagCrossRef
+import com.example.myownvocabulary.data.entry.EntryTagEntity
 
 @Database(
-    entities = [EntryEntity::class, ContextSentenceEntity::class],
-    version = 9,
+    entities = [EntryEntity::class, ContextSentenceEntity::class, EntryTagEntity::class, EntryTagCrossRef::class],
+    version = 10,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
@@ -23,6 +25,23 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun contextSentenceDao(): ContextSentenceDao
 
     companion object {
+        internal val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    "CREATE TABLE IF NOT EXISTS tags (id TEXT NOT NULL PRIMARY KEY, label TEXT NOT NULL, hue REAL NOT NULL)"
+                )
+                db.execSQL(
+                    """CREATE TABLE IF NOT EXISTS entry_tags (
+                    entryId TEXT NOT NULL,
+                    tagId TEXT NOT NULL,
+                    PRIMARY KEY(entryId, tagId),
+                    FOREIGN KEY(entryId) REFERENCES entries(id) ON UPDATE NO ACTION ON DELETE CASCADE,
+                    FOREIGN KEY(tagId) REFERENCES tags(id) ON UPDATE NO ACTION ON DELETE CASCADE
+                )"""
+                )
+                db.execSQL("CREATE INDEX IF NOT EXISTS index_entry_tags_tagId ON entry_tags(tagId)")
+            }
+        }
         internal val MIGRATION_7_8 = object : Migration(7, 8) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL("ALTER TABLE entries ADD COLUMN meaning TEXT NOT NULL DEFAULT ''")
@@ -72,7 +91,7 @@ abstract class AppDatabase : RoomDatabase() {
                 AppDatabase::class.java,
                 "vocabulary.db"
             )
-                .addMigrations(MIGRATION_7_8, MIGRATION_8_9)
+                .addMigrations(MIGRATION_7_8, MIGRATION_8_9, MIGRATION_9_10)
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
                 .also { instance = it }
