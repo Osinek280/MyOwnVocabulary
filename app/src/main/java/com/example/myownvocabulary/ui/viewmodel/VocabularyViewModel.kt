@@ -9,16 +9,19 @@ import com.example.myownvocabulary.data.entry.EntryEntity
 import com.example.myownvocabulary.data.entry.EntryKind
 import com.example.myownvocabulary.data.entry.Language
 import com.example.myownvocabulary.data.entry.PartOfSpeech
+import com.example.myownvocabulary.data.prefs.HomeOptions
 import com.example.myownvocabulary.data.prefs.UserPreferences
 import com.example.myownvocabulary.model.ContextSentence
 import com.example.myownvocabulary.model.Entry
 import com.example.myownvocabulary.model.toEntity
 import com.example.myownvocabulary.model.toModel
 import com.example.myownvocabulary.ui.components.quiz.QuizOptions
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
@@ -31,6 +34,22 @@ class VocabularyViewModel(
     private val contextDao: ContextSentenceDao,
     private val userPreferences: UserPreferences
 ) : ViewModel() {
+    private val _homeOptions = MutableStateFlow<HomeOptions?>(null)
+    val homeOptions: StateFlow<HomeOptions?> = _homeOptions.asStateFlow()
+    private val homeOptionsWrites = Channel<HomeOptions>(Channel.UNLIMITED)
+
+    init {
+        viewModelScope.launch {
+            _homeOptions.value = userPreferences.homeOptions.first()
+            for (options in homeOptionsWrites) userPreferences.saveHomeOptions(options)
+        }
+    }
+
+    fun saveHomeOptions(options: HomeOptions) {
+        _homeOptions.value = options
+        homeOptionsWrites.trySend(options)
+    }
+
     val quizOptions: StateFlow<QuizOptions?> = userPreferences.quizOptions
         .stateIn(
             scope = viewModelScope,

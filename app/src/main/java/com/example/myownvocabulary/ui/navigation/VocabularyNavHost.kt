@@ -119,7 +119,15 @@ fun VocabularyNavHost() {
         ) {
             composable(Routes.ENTRIES) {
                 val selectedIds by viewModel.selectedIds.collectAsStateWithLifecycle()
+                val homeOptions by viewModel.homeOptions.collectAsStateWithLifecycle()
+                val loadedHomeOptions = homeOptions
+                if (loadedHomeOptions == null) {
+                    LoadingState(modifier = Modifier.fillMaxSize())
+                    return@composable
+                }
                 HomeScreen(
+                    options = loadedHomeOptions,
+                    onOptionsChange = viewModel::saveHomeOptions,
                     entries = uiState.entries,
                     isLoading = uiState.isLoading,
                     onAddClick = { kind -> navController.navigate(Routes.addEntry(kind)) },

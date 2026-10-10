@@ -3,6 +3,7 @@ package com.example.myownvocabulary.ui.screens
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -16,6 +17,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -28,7 +30,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.listSaver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -37,6 +38,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.toggleableState
 import androidx.compose.ui.state.ToggleableState
@@ -45,6 +47,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.myownvocabulary.data.entry.EntryKind
 import com.example.myownvocabulary.data.entry.Language
+import com.example.myownvocabulary.data.prefs.HomeOptions
+import com.example.myownvocabulary.data.prefs.HomeSort
+import com.example.myownvocabulary.data.prefs.sortEntries
 import com.example.myownvocabulary.model.Entry
 import com.example.myownvocabulary.ui.components.EntryRow
 import com.example.myownvocabulary.ui.components.PlusIcon
@@ -59,6 +64,8 @@ import com.example.myownvocabulary.ui.text.PolishNumeralCase
 @Composable
 fun HomeScreen(
     entries: List<Entry>,
+    options: HomeOptions,
+    onOptionsChange: (HomeOptions) -> Unit,
     isLoading: Boolean,
     onAddClick: (EntryKind) -> Unit = {},
     onEntryClick: (String) -> Unit = {},
@@ -71,12 +78,8 @@ fun HomeScreen(
     val colors = MaterialTheme.colorScheme
     var search by rememberSaveable { mutableStateOf("") }
 
-    var languageFilter by rememberSaveable(stateSaver = FilterSelectionSaver) {
-        mutableStateOf<List<String>>(emptyList())
-    }
-    var kindFilter by rememberSaveable(stateSaver = FilterSelectionSaver) {
-        mutableStateOf<List<String>>(emptyList())
-    }
+    val languageFilter = options.languages.toList()
+    val kindFilter = options.kinds.toList()
 
     val languages = remember(entries) {
         entries.map { Language.fromCode(it.languageCode) }
@@ -85,9 +88,8 @@ fun HomeScreen(
     }
     val activeLanguages = languages.filter { it.code in languageFilter }
     val activeKinds = EntryKind.entries.filter { it.name in kindFilter }
-    val allLanguagesSelected = languageFilter.isEmpty() ||
-        (languages.isNotEmpty() && activeLanguages.size == languages.size)
-    val allKindsSelected = kindFilter.isEmpty() || activeKinds.size == EntryKind.entries.size
+    val allLanguagesSelected = languageFilter.isEmpty()
+    val allKindsSelected = kindFilter.isEmpty()
 
     val filtered = entries.filter { entry ->
         val matchesSearch = entry.term.contains(search, ignoreCase = true) ||
@@ -95,7 +97,7 @@ fun HomeScreen(
         val matchesLanguage = allLanguagesSelected || entry.languageCode in languageFilter
         val matchesKind = allKindsSelected || entry.kind.name in kindFilter
         matchesSearch && matchesLanguage && matchesKind
-    }
+    }.let { options.sort.sortEntries(it) }
 
     var pendingDelete by remember { mutableStateOf(false) }
 
@@ -225,66 +227,78 @@ fun HomeScreen(
                                 )
                             }
                         } else {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(6.dp)
-                            ) {
-                                FilterMenu(
-                                    label = when {
-                                        allLanguagesSelected -> "Wszystkie języki"
-                                        activeLanguages.size == 1 -> activeLanguages.single().let {
-                                            "${it.flagEmoji} ${it.displayName}"
-                                        }
-                                        else -> "Języki (${languageFilter.size})"
-                                    },
-                                    allLabel = "Wszystkie języki",
-                                    allSelected = allLanguagesSelected,
-                                    onSelectAll = {
-                                        languageFilter = emptyList()
-                                        onClearSelection()
-                                    },
-                                    options = languages,
-                                    optionLabel = { language ->
-                                        "${language.flagEmoji} ${language.displayName}"
-                                    },
-                                    isSelected = { !allLanguagesSelected && it.code in languageFilter },
-                                    onSelect = { selected ->
-                                        languageFilter = toggleFilter(
-                                            selected = if (allLanguagesSelected) emptyList() else languageFilter,
-                                            value = selected.code,
-                                            options = languages.map { it.code }
-                                        )
-                                        onClearSelection()
+                            SortMenu(options.sort) { onOptionsChange(options.copy(sort = it)) }
+                        }
+                    }
+                    if (!inSelection) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        ) {
+                            FilterMenu(
+                                label = when {
+                                    allLanguagesSelected -> "Wszystkie języki"
+                                    activeLanguages.size == 1 -> activeLanguages.single().let {
+                                        "${it.flagEmoji} ${it.displayName}"
                                     }
-                                )
-                                FilterMenu(
-                                    label = when {
-                                        allKindsSelected -> "Wszystkie typy"
-                                        activeKinds.size == 1 -> activeKinds.single().let {
-                                            "${it.icon} ${it.pluralLabel}"
-                                        }
-                                        else -> "Typy (${kindFilter.size})"
-                                    },
-                                    allLabel = "Wszystkie typy",
-                                    allSelected = allKindsSelected,
-                                    onSelectAll = {
-                                        kindFilter = emptyList()
-                                        onClearSelection()
-                                    },
-                                    options = EntryKind.entries,
-                                    optionLabel = { kind ->
-                                        "${kind.icon} ${kind.pluralLabel}"
-                                    },
-                                    isSelected = { !allKindsSelected && it.name in kindFilter },
-                                    onSelect = { selected ->
-                                        kindFilter = toggleFilter(
-                                            selected = if (allKindsSelected) emptyList() else kindFilter,
-                                            value = selected.name,
-                                            options = EntryKind.entries.map { it.name }
+                                    else -> "Języki (${languageFilter.size})"
+                                },
+                                allLabel = "Wszystkie języki",
+                                allSelected = allLanguagesSelected,
+                                onSelectAll = {
+                                    onOptionsChange(options.copy(languages = emptySet()))
+                                    onClearSelection()
+                                },
+                                options = languages,
+                                optionLabel = { language ->
+                                    "${language.flagEmoji} ${language.displayName}"
+                                },
+                                isSelected = { !allLanguagesSelected && it.code in languageFilter },
+                                onSelect = { selected ->
+                                    onOptionsChange(
+                                        options.copy(
+                                            languages = toggleFilter(
+                                                selected = if (allLanguagesSelected) emptyList() else languageFilter,
+                                                value = selected.code,
+                                                options = languages.map { it.code }
+                                            ).toSet()
                                         )
-                                        onClearSelection()
+                                    )
+                                    onClearSelection()
+                                }
+                            )
+                            FilterMenu(
+                                label = when {
+                                    allKindsSelected -> "Wszystkie typy"
+                                    activeKinds.size == 1 -> activeKinds.single().let {
+                                        "${it.icon} ${it.pluralLabel}"
                                     }
-                                )
-                            }
+                                    else -> "Typy (${kindFilter.size})"
+                                },
+                                allLabel = "Wszystkie typy",
+                                allSelected = allKindsSelected,
+                                onSelectAll = {
+                                    onOptionsChange(options.copy(kinds = emptySet()))
+                                    onClearSelection()
+                                },
+                                options = EntryKind.entries,
+                                optionLabel = { kind ->
+                                    "${kind.icon} ${kind.pluralLabel}"
+                                },
+                                isSelected = { !allKindsSelected && it.name in kindFilter },
+                                onSelect = { selected ->
+                                    onOptionsChange(
+                                        options.copy(
+                                            kinds = toggleFilter(
+                                                selected = if (allKindsSelected) emptyList() else kindFilter,
+                                                value = selected.name,
+                                                options = EntryKind.entries.map { it.name }
+                                            ).toSet()
+                                        )
+                                    )
+                                    onClearSelection()
+                                }
+                            )
                         }
                     }
                     Spacer(Modifier.height(12.dp))
@@ -381,10 +395,34 @@ private fun <T> FilterMenu(
     }
 }
 
-private val FilterSelectionSaver = listSaver<List<String>, String>(
-    save = { it },
-    restore = { it.toList() }
-)
+@Composable
+private fun SortMenu(sort: HomeSort, onSelect: (HomeSort) -> Unit) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        SelectionChip(
+            label = sort.label + " \u25be",
+            onClick = { expanded = true },
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            contentColor = MaterialTheme.colorScheme.onSurface
+        )
+        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+            HomeSort.entries.forEach { option ->
+                DropdownMenuItem(
+                    text = { Text(option.label) },
+                    trailingIcon = { if (option == sort) Text("\u2713") },
+                    modifier = Modifier.semantics {
+                        role = Role.RadioButton
+                        selected = option == sort
+                    },
+                    onClick = {
+                        onSelect(option)
+                        expanded = false
+                    }
+                )
+            }
+        }
+    }
+}
 
 private fun toggleFilter(selected: List<String>, value: String, options: List<String>): List<String> {
     val updated = if (value in selected) selected - value else selected + value

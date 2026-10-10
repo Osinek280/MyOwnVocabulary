@@ -6,6 +6,7 @@ import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.booleanPreferencesKey
 import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import com.example.myownvocabulary.data.entry.Language
 import com.example.myownvocabulary.ui.components.quiz.QuizOptions
@@ -17,6 +18,9 @@ private const val MAX_RECENT_LANGUAGES = 5
 val Context.userPrefs: DataStore<Preferences> by preferencesDataStore(name = "user_prefs")
 
 private object UserPrefsKeys {
+    val HomeLanguages = stringSetPreferencesKey("home_languages")
+    val HomeKinds = stringSetPreferencesKey("home_kinds")
+    val HomeSortOrder = stringPreferencesKey("home_sort")
     val RecentLanguageCodes = stringPreferencesKey("recent_language_codes")
     val QuizShuffle = booleanPreferencesKey("quiz_shuffle")
     val QuizAnswerWithTerm = booleanPreferencesKey("quiz_answer_with_term")
@@ -27,6 +31,23 @@ private object UserPrefsKeys {
 }
 
 class UserPreferences(private val context: Context) {
+    val homeOptions: Flow<HomeOptions> = context.userPrefs.data.map { prefs ->
+        HomeOptions(
+            languages = prefs[UserPrefsKeys.HomeLanguages].orEmpty(),
+            kinds = prefs[UserPrefsKeys.HomeKinds].orEmpty(),
+            sort = HomeSort.entries.find { it.name == prefs[UserPrefsKeys.HomeSortOrder] }
+                ?: HomeSort.Newest
+        )
+    }
+
+    suspend fun saveHomeOptions(options: HomeOptions) {
+        context.userPrefs.edit { prefs ->
+            prefs[UserPrefsKeys.HomeLanguages] = options.languages
+            prefs[UserPrefsKeys.HomeKinds] = options.kinds
+            prefs[UserPrefsKeys.HomeSortOrder] = options.sort.name
+        }
+    }
+
     val quizOptions: Flow<QuizOptions> = context.userPrefs.data.map { prefs ->
         val defaults = QuizOptions()
         QuizOptions(

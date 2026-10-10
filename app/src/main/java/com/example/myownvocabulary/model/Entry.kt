@@ -13,7 +13,8 @@ data class Entry(
 
     val partOfSpeech: PartOfSpeech? = null,
     val meaning: String? = null,
-    val numericValue: String? = null
+    val numericValue: String? = null,
+    val createdAt: Long = 0L
 )
 
 fun EntryEntity.toModel() = Entry(
@@ -24,5 +25,6 @@ fun EntryEntity.toModel() = Entry(
     partOfSpeech = partOfSpeech,
     kind = kind,
     meaning = meaning,
-    numericValue = numericValue
+    numericValue = numericValue,
+    createdAt = createdAt
 )
