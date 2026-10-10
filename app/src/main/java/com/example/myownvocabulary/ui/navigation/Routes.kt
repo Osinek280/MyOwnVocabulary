@@ -4,6 +4,7 @@ import com.example.myownvocabulary.data.entry.EntryKind
 
 object Routes {
     const val ENTRIES = "entries"
+    const val HOME = "home"
     const val LEARN = "learn"
     const val SETTINGS = "settings"
 
@@ -18,5 +19,5 @@ object Routes {
     const val TRANSFER_IMPORT = "import"
     fun transfer(mode: String) = "transfer/$mode"
 
-    val Tabs = setOf(ENTRIES, LEARN, SETTINGS)
+    val Tabs = setOf(HOME, ENTRIES, SETTINGS)
 }

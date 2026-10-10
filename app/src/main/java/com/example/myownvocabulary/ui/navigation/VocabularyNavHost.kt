@@ -39,6 +39,7 @@ import com.example.myownvocabulary.model.Entry
 import com.example.myownvocabulary.ui.components.states.EmptyVocabularyState
 import com.example.myownvocabulary.ui.components.states.EntryNotFoundState
 import com.example.myownvocabulary.ui.components.states.LoadingState
+import com.example.myownvocabulary.ui.screens.EntriesListScreen
 import com.example.myownvocabulary.ui.screens.EntryDetailScreen
 import com.example.myownvocabulary.ui.screens.HomeScreen
 import com.example.myownvocabulary.ui.screens.QuizScreen
@@ -114,9 +115,15 @@ fun VocabularyNavHost() {
     ) { innerPadding ->
         NavHost(
             navController = navController,
-            startDestination = Routes.ENTRIES,
+            startDestination = Routes.HOME,
             modifier = Modifier.padding(innerPadding)
         ) {
+            composable(Routes.HOME) {
+                HomeScreen(
+                    onOpenVocabulary = { navController.navigateToTab(Routes.ENTRIES) }
+                )
+            }
+
             composable(Routes.ENTRIES) {
                 val selectedIds by viewModel.selectedIds.collectAsStateWithLifecycle()
                 val homeOptions by viewModel.homeOptions.collectAsStateWithLifecycle()
@@ -125,7 +132,7 @@ fun VocabularyNavHost() {
                     LoadingState(modifier = Modifier.fillMaxSize())
                     return@composable
                 }
-                HomeScreen(
+                EntriesListScreen(
                     options = loadedHomeOptions,
                     onOptionsChange = viewModel::saveHomeOptions,
                     entries = uiState.entries,

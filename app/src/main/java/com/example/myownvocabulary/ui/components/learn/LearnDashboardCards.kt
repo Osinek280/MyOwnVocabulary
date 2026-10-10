@@ -435,10 +435,17 @@ private fun LearningModeCard(
 }
 
 @Composable
-fun VocabularyProgressCard(masteredCount: Int, learningCount: Int, newCount: Int, modifier: Modifier = Modifier) {
+fun VocabularyProgressCard(
+    masteredCount: Int,
+    learningCount: Int,
+    newCount: Int,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     val colors = MaterialTheme.colorScheme
     val totalCount = masteredCount + learningCount + newCount
     Card(
+        onClick = onClick,
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = colors.surfaceContainerLow)

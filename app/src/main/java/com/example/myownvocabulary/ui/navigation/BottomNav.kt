@@ -38,14 +38,14 @@ fun BottomNav(currentRoute: String, onNavigate: (String) -> Unit) {
             }
     ) {
         NavItem(
+            label = "Start",
+            selected = currentRoute == Routes.HOME,
+            onClick = { onNavigate(Routes.HOME) }
+        ) { color -> ListIcon(color) }
+        NavItem(
             label = "Lista",
             selected = currentRoute == Routes.ENTRIES,
             onClick = { onNavigate(Routes.ENTRIES) }
-        ) { color -> ListIcon(color) }
-        NavItem(
-            label = "Nauka",
-            selected = currentRoute == Routes.LEARN,
-            onClick = { onNavigate(Routes.LEARN) }
         ) { color -> LearnIcon(color) }
         NavItem(
             label = "Opcje",
