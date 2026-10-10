@@ -40,7 +40,7 @@ import com.example.myownvocabulary.ui.components.states.EmptyVocabularyState
 import com.example.myownvocabulary.ui.components.states.EntryNotFoundState
 import com.example.myownvocabulary.ui.components.states.LoadingState
 import com.example.myownvocabulary.ui.screens.EntriesListScreen
-import com.example.myownvocabulary.ui.screens.EntryDetailScreen
+import com.example.myownvocabulary.ui.screens.EntryDetailsScreen
 import com.example.myownvocabulary.ui.screens.HomeScreen
 import com.example.myownvocabulary.ui.screens.QuizScreen
 import com.example.myownvocabulary.ui.screens.SettingsScreen
@@ -270,7 +270,7 @@ fun VocabularyNavHost() {
                     backStackEntry.arguments?.getString("kind") ?: EntryKind.Word.name
                 )
 
-                EntryDetailScreen(
+                EntryDetailsScreen(
                     entry = Entry(
                         id = "",
                         term = "",
@@ -318,7 +318,7 @@ fun VocabularyNavHost() {
 
                 when {
                     entry != null && loadedContexts != null -> {
-                        EntryDetailScreen(
+                        EntryDetailsScreen(
                             entry = entry,
                             initialContexts = loadedContexts,
                             entries = uiState.entries,

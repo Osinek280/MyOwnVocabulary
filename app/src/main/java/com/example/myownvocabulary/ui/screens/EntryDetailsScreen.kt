@@ -69,7 +69,7 @@ import com.example.myownvocabulary.ui.components.SectionLabel
 import java.util.UUID
 
 @Composable
-fun EntryDetailScreen(
+fun EntryDetailsScreen(
     entry: Entry =
         Entry(
             id = "",
