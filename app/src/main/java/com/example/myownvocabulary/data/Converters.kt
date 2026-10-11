@@ -4,6 +4,8 @@ import androidx.room.TypeConverter
 import com.example.myownvocabulary.data.context.TextSpan
 import com.example.myownvocabulary.data.entry.EntryKind
 import com.example.myownvocabulary.data.entry.PartOfSpeech
+import com.example.myownvocabulary.data.learning.LearningSessionType
+import com.example.myownvocabulary.data.learning.LearningStatus
 
 class Converters {
     @TypeConverter
@@ -30,4 +32,16 @@ class Converters {
 
     @TypeConverter
     fun toEntryKind(value: String): EntryKind = EntryKind.valueOf(value)
+
+    @TypeConverter
+    fun fromLearningStatus(value: LearningStatus): String = value.name
+
+    @TypeConverter
+    fun toLearningStatus(value: String): LearningStatus = LearningStatus.valueOf(value)
+
+    @TypeConverter
+    fun fromLearningSessionType(value: LearningSessionType): String = value.name
+
+    @TypeConverter
+    fun toLearningSessionType(value: String): LearningSessionType = LearningSessionType.valueOf(value)
 }
