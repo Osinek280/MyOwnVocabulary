@@ -18,10 +18,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import com.example.myownvocabulary.ui.components.learn.DailySessionCard
-import com.example.myownvocabulary.ui.components.learn.LearnDashboardHeader
 import com.example.myownvocabulary.model.LearnDashboardState
 import com.example.myownvocabulary.model.LearnSessionSelection
+import com.example.myownvocabulary.ui.components.learn.DailySessionCard
+import com.example.myownvocabulary.ui.components.learn.LearnDashboardHeader
 import com.example.myownvocabulary.ui.components.learn.LearnSessionSetupSheet
 import com.example.myownvocabulary.ui.components.learn.LearningCalendarSheet
 import com.example.myownvocabulary.ui.components.learn.LearningModesSection
