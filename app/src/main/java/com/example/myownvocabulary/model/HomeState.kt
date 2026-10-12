@@ -1,4 +1,4 @@
-package com.example.myownvocabulary.ui.components.learn
+package com.example.myownvocabulary.model
 
 import com.example.myownvocabulary.data.entry.EntryKind
 

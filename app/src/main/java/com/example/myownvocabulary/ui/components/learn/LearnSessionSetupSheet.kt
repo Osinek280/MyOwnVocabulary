@@ -43,6 +43,9 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.example.myownvocabulary.data.entry.EntryKind
+import com.example.myownvocabulary.model.LearnFilterOption
+import com.example.myownvocabulary.model.LearnSessionSelection
+import com.example.myownvocabulary.model.LearnSessionSetupData
 
 @Composable
 @OptIn(ExperimentalMaterial3Api::class)

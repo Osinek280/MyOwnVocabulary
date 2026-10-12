@@ -1,13 +1,13 @@
 package com.example.myownvocabulary.ui.preview
 
 import com.example.myownvocabulary.data.entry.EntryKind
-import com.example.myownvocabulary.ui.components.learn.CalendarMonthId
-import com.example.myownvocabulary.ui.components.learn.LearnDashboardState
-import com.example.myownvocabulary.ui.components.learn.LearnEntryKindOption
-import com.example.myownvocabulary.ui.components.learn.LearnFilterOption
-import com.example.myownvocabulary.ui.components.learn.LearnSessionSetupData
-import com.example.myownvocabulary.ui.components.learn.LearningCalendarMonth
-import com.example.myownvocabulary.ui.components.learn.LearningDay
+import com.example.myownvocabulary.model.CalendarMonthId
+import com.example.myownvocabulary.model.LearnDashboardState
+import com.example.myownvocabulary.model.LearnEntryKindOption
+import com.example.myownvocabulary.model.LearnFilterOption
+import com.example.myownvocabulary.model.LearnSessionSetupData
+import com.example.myownvocabulary.model.LearningCalendarMonth
+import com.example.myownvocabulary.model.LearningDay
 
 object LearnDashboardPreviewData {
     val state = LearnDashboardState(

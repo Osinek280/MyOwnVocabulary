@@ -34,6 +34,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.example.myownvocabulary.model.CalendarMonthId
+import com.example.myownvocabulary.model.LearningCalendarMonth
 import java.util.Calendar
 import java.util.GregorianCalendar
 
