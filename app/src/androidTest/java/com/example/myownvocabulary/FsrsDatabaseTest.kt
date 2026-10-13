@@ -6,7 +6,6 @@ import com.example.myownvocabulary.data.AppDatabase
 import com.example.myownvocabulary.data.entry.EntryEntity
 import com.example.myownvocabulary.data.entry.EntryKind
 import com.example.myownvocabulary.data.learning.FsrsRepository
-import com.example.myownvocabulary.data.learning.LearningProgressEntity
 import com.example.myownvocabulary.model.fsrs.CardPhase
 import com.example.myownvocabulary.model.fsrs.FSRS6
 import com.example.myownvocabulary.model.fsrs.Rating
@@ -109,24 +108,56 @@ class FsrsDatabaseTest {
     }
 
     @Test
-    fun migrationFromVersion11PreservesEntriesAndExistingLearningProgress() = runBlocking {
+    fun migrationFromVersion11KeepsEntriesAndDropsObsoleteLearningTables() = runBlocking {
         val name = "fsrs-migration-${UUID.randomUUID()}.db"
         val builder = { Room.databaseBuilder(context, AppDatabase::class.java, name) }
         var database = builder().build()
         try {
             database.entryDao().saveWithTags(entry("entry"), emptyList(), isNew = true)
-            val progress = LearningProgressEntity("entry", correctStreak = 3, totalCorrect = 7)
-            database.learningProgressDao().upsert(progress)
-            // Produce the exact v11 schema by removing only the tables added in v12.
             val sqlite = database.openHelper.writableDatabase
             sqlite.execSQL("DROP TABLE fsrs_reviews")
             sqlite.execSQL("DROP TABLE fsrs_cards")
+            sqlite.execSQL(
+                """CREATE TABLE learning_progress (
+                    entryId TEXT NOT NULL PRIMARY KEY,
+                    status TEXT NOT NULL,
+                    stage INTEGER NOT NULL,
+                    correctStreak INTEGER NOT NULL,
+                    totalCorrect INTEGER NOT NULL,
+                    totalIncorrect INTEGER NOT NULL,
+                    lastReviewedAt INTEGER,
+                    nextReviewAt INTEGER
+                )"""
+            )
+            sqlite.execSQL(
+                """INSERT INTO learning_progress
+                    (entryId, status, stage, correctStreak, totalCorrect, totalIncorrect)
+                    VALUES ('entry', 'LEARNING', 0, 3, 7, 0)"""
+            )
+            sqlite.execSQL(
+                """CREATE TABLE learning_sessions (
+                    id TEXT NOT NULL PRIMARY KEY,
+                    type TEXT NOT NULL,
+                    startedAt INTEGER NOT NULL,
+                    completedAt INTEGER,
+                    plannedCount INTEGER NOT NULL,
+                    answeredCount INTEGER NOT NULL,
+                    correctCount INTEGER NOT NULL
+                )"""
+            )
             sqlite.version = 11
             database.close()
 
-            database = builder().addMigrations(AppDatabase.MIGRATION_11_12).build()
+            database = builder()
+                .addMigrations(AppDatabase.MIGRATION_11_12, AppDatabase.MIGRATION_12_13)
+                .build()
             assertEquals(listOf(entry("entry")), database.entryDao().observeAllWithTags().first().map { it.entry })
-            assertEquals(progress, database.learningProgressDao().observeByEntryId("entry").first())
+            database.openHelper.readableDatabase.query(
+                """SELECT name FROM sqlite_master
+                WHERE type = 'table' AND name IN ('learning_progress', 'learning_sessions')"""
+            ).use { cursor ->
+                assertEquals(0, cursor.count)
+            }
             assertTrue(database.fsrsDao().getDue(Long.MAX_VALUE).isEmpty())
             val repository = FsrsRepository(database)
             repository.save(repository.preview("entry", start).single { it.choice == Rating.Good })

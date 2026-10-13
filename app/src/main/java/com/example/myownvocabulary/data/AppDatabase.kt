@@ -16,10 +16,6 @@ import com.example.myownvocabulary.data.entry.EntryTagEntity
 import com.example.myownvocabulary.data.learning.FsrsCardEntity
 import com.example.myownvocabulary.data.learning.FsrsDao
 import com.example.myownvocabulary.data.learning.FsrsReviewEntity
-import com.example.myownvocabulary.data.learning.LearningProgressDao
-import com.example.myownvocabulary.data.learning.LearningProgressEntity
-import com.example.myownvocabulary.data.learning.LearningSessionDao
-import com.example.myownvocabulary.data.learning.LearningSessionEntity
 
 @Database(
     entities = [
@@ -27,23 +23,26 @@ import com.example.myownvocabulary.data.learning.LearningSessionEntity
         ContextSentenceEntity::class,
         EntryTagEntity::class,
         EntryTagCrossRef::class,
-        LearningProgressEntity::class,
-        LearningSessionEntity::class,
         FsrsCardEntity::class,
         FsrsReviewEntity::class
     ],
-    version = 12,
+    version = 13,
     exportSchema = false
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun entryDao(): EntryDao
     abstract fun contextSentenceDao(): ContextSentenceDao
-    abstract fun learningProgressDao(): LearningProgressDao
-    abstract fun learningSessionDao(): LearningSessionDao
     abstract fun fsrsDao(): FsrsDao
 
     companion object {
+        internal val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("DROP TABLE IF EXISTS learning_progress")
+                db.execSQL("DROP TABLE IF EXISTS learning_sessions")
+            }
+        }
+
         internal val MIGRATION_11_12 = object : Migration(11, 12) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 db.execSQL(
@@ -186,7 +185,8 @@ abstract class AppDatabase : RoomDatabase() {
                     MIGRATION_8_9,
                     MIGRATION_9_10,
                     MIGRATION_10_11,
-                    MIGRATION_11_12
+                    MIGRATION_11_12,
+                    MIGRATION_12_13
                 )
                 .fallbackToDestructiveMigration(dropAllTables = true)
                 .build()
